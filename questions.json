@@ -1,0 +1,28 @@
+[
+  {
+    "numero": 1,
+    "area": "Clínica Médica",
+    "question": "Sobre a hipertensão arterial sistêmica, analise as assertivas a seguir: I. Para diagnóstico, indica-se a medição anual de pressão arterial se a pressão arterial aferida for inferior a 140/90 mmHg. II. O diagnóstico da hipertensão arterial sistêmica deve ser baseado na medição da pressão fora do consultório com monitorização ambulatorial da pressão arterial, desde que seja viável sua realização. III. História prévia de pré-eclâmpsia em mulheres é fator de risco para hipertensão arterial sistêmica. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "D",
+    "explanation": "Todas as assertivas estão corretas..."
+  },
+  {
+    "numero": 2,
+    "area": "Clínica Médica",
+    "question": "Sobre a dengue...",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "B",
+    "explanation": "Apenas I e III estão corretas..."
+  }
+]
