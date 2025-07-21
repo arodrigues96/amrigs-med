@@ -16,6 +16,7 @@
     background: white;
     padding: 15px 25px;
     border-radius: 8px;
+    position: relative;
   }
   nav {
     margin-top: 15px;
@@ -33,17 +34,27 @@
     background: #ccc;
     cursor: default;
   }
-  #options li {
+  #options {
+    list-style: none;
+    padding: 0;
+  }
+  .option-label {
+    display: flex;
+    align-items: center;
     margin-bottom: 8px;
-  }
-  #options button {
-    width: 100%;
-    background: #ecf0f1;
-    color: #2c3e50;
+    padding: 10px;
     border-radius: 5px;
+    cursor: pointer;
+    background-color: #ecf0f1;
   }
-  #options button:hover {
-    background: #d6eaf8;
+  .option-label.correct {
+    background-color: #c8e6c9;
+  }
+  .option-label.wrong {
+    background-color: #ffcdd2;
+  }
+  input[type="radio"] {
+    margin-right: 10px;
   }
   #feedback {
     margin-top: 15px;
@@ -58,13 +69,24 @@
   #explanations div {
     margin-bottom: 10px;
   }
+  .flag-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    color: gray;
+  }
+  .flagged {
+    color: gold;
+  }
 </style>
 </head>
 <body>
 
-<h1>Quiz Interativo</h1>
+<h1>AMRIGS</h1>
 
 <main>
+  <div class="flag-icon" id="flag-icon">⚑</div>
   <h2 id="area-title"></h2>
   <p id="question-text"></p>
   <ul id="options"></ul>
@@ -73,8 +95,8 @@
 
 <nav>
   <button id="prev" disabled>Anterior</button>
-  <button id="flag">Marcar</button>
-  <button id="next">Próximo</button>
+  <button id="flag">Marcar questão</button>
+  <button id="next">Próxima</button>
 </nav>
 
 <section id="results">
@@ -86,20 +108,168 @@
 <script>
 const questions = [
   {
-    "area": "Clínica Médica",
-    "question": "Sobre a hipertensão arterial sistêmica...",
-    "options": [
-      "A) Apenas I e II.",
-      "B) Apenas I e III.",
-      "C) Apenas II e III.",
-      "D) I, II e III."
-    ],
-    "correct": "B",
-    "explanation": "Explicação da alternativa correta."
+    numero: 1,
+    area: "Clínica Médica",
+    question: "Sobre a hipertensão arterial sistêmica, analise as assertivas a seguir: I. Para diagnóstico, indica-se a medição anual de pressão arterial se a pressão arterial aferida for inferior a 140/90 mmHg. II. O diagnóstico da hipertensão arterial sistêmica deve ser baseado na medição da pressão fora do consultório com monitorização ambulatorial da pressão arterial, desde que seja viável sua realização. III. História prévia de pré-eclâmpsia em mulheres é fator de risco para hipertensão arterial sistêmica. Quais estão corretas?",
+    options: {
+      A: "Apenas I e II.",
+      B: "Apenas I e III.",
+      C: "Apenas II e III.",
+      D: "I, II e III."
+    },
+    correct: "D",
+    explanation: "Todas as assertivas estão corretas. O diagnóstico da hipertensão requer múltiplas aferições, incluindo monitorização ambulatorial quando possível, e a história de pré-eclâmpsia é reconhecido fator de risco."
+  },
+  {
+    numero: 2,
+    area: "Clínica Médica",
+    question: "Sobre a dengue, analise as assertivas a seguir: I. Existem técnicas laboratoriais para identificação do vírus (até o 5º dia de início da doença) e pesquisa de anticorpos (a partir do 6º dia de início da doença). II. O tratamento inclui medidas de suporte, hidratação, repouso e antibioticoterapia. III. O controle do vetor Aedes aegypti é o principal método para a prevenção. Quais estão corretas?",
+    options: {
+      A: "Apenas I e II.",
+      B: "Apenas I e III.",
+      C: "Apenas II e III.",
+      D: "I, II e III."
+    },
+    correct: "B",
+    explanation: "Apenas I e III estão corretas. O tratamento da dengue não inclui antibioticoterapia, pois é uma doença viral."
+  },
+  {
+    numero: 3,
+    area: "Clínica Médica",
+    question: "Em relação ao colesterol, analise as assertivas a seguir: I. Níveis elevados de HDL-C costumam estar relacionados a menor risco cardiovascular. II. Altos níveis de HDL-C decorrentes de algumas doenças genéticas podem não proteger de doença cardiovascular, provavelmente em razão das alterações metabólicas e lipídicas concomitantes. III. Causas secundárias de HDL-C elevado incluem cirrose biliar primária, hipertireoidismo e alcoolismo sem cirrose. Quais estão corretas?",
+    options: {
+      A: "Apenas I e II.",
+      B: "Apenas I e III.",
+      C: "Apenas II e III.",
+      D: "I, II e III."
+    },
+    correct: "A",
+    explanation: "Apenas I e II estão corretas. O HDL elevado geralmente é protetor, mas em algumas condições genéticas pode não ter esse efeito."
+  },
+  {
+    numero: 4,
+    area: "Clínica Médica",
+    question: "Em relação à leptospirose, analise as assertivas a seguir: I. A penetração do Leptospira ocorre apenas a partir de lesões de pele imersa por longos períodos em água contaminada. II. O período de incubação pode variar de 1 a 30 dias e normalmente ocorre entre 7 e 14 dias após a exposição a situações de risco. III. A antibioticoterapia está indicada em qualquer período da doença, mas sua eficácia costuma ser maior na 1ª semana do início dos sintomas. Quais estão corretas?",
+    options: {
+      A: "Apenas I e II.",
+      B: "Apenas I e III.",
+      C: "Apenas II e III.",
+      D: "I, II e III."
+    },
+    correct: "C",
+    explanation: "Apenas II e III estão corretas. A penetração do Leptospira pode ocorrer também por mucosas intactas."
+  },
+  {
+    numero: 5,
+    area: "Clínica Médica",
+    question: "Em relação à nefropatia diabética, analise as assertivas a seguir: I. No estágio de nefropatia incipiente, ainda não há alteração na membrana basal glomerular nem no mesângio. II. A nefropatia clínica é caracterizada pela proteinúria persistente superior a 500 mg/24h, excreção urinária de albumina superior a 200 mg/L e declínio da taxa de filtração glomerular. III. No estágio de doença renal crônica, estabelecida a proteinúria, os pacientes passam a perder gradativamente a função renal, e mais de 10% evoluem para a doença renal crônica. Quais estão corretas?",
+    options: {
+      A: "Apenas I e II.",
+      B: "Apenas I e III.",
+      C: "Apenas II e III.",
+      D: "I, II e III."
+    },
+    correct: "A",
+    explanation: "Apenas I e II estão corretas. No estágio de nefropatia incipiente já há alterações histológicas."
+  },
+  {
+    numero: 6,
+    area: "Clínica Médica",
+    question: "Em relação ao rastreio para o câncer de próstata, analise as assertivas a seguir e assinale a alternativa correta. I. Homens a partir de 45 anos, mesmo sem apresentar sintomas, devem procurar o médico para avaliação individualizada, tendo como objetivo o diagnóstico precoce do câncer de próstata. II. Homens que integram o grupo de risco (raça negra ou com parentes de primeiro grau com câncer de próstata) devem começar seus exames mais precocemente, a partir dos 40 anos. III. Após os 70 anos, somente homens com perspectiva de vida maior do que 10 anos poderão fazer essa avaliação.",
+    options: {
+      A: "Todas as assertivas estão corretas.",
+      B: "Todas as assertivas estão incorretas.",
+      C: "Apenas a assertiva II está correta.",
+      D: "Apenas a assertiva III está correta."
+    },
+    correct: "B",
+    explanation: "Todas as assertivas estão incorretas. O rastreio deve ser individualizado e discutido com o paciente, considerando riscos e benefícios."
+  },
+  {
+    numero: 7,
+    area: "Clínica Médica",
+    question: "O escore de Wells é um modelo de predileção clínica amplamente utilizado para auxílio no diagnóstico de Trombose Venosa Profunda (TVP). Qual das alternativas abaixo apresenta um achado clínico que NÃO aumenta a suspeição de diagnóstico de TVP?",
+    options: {
+      A: "Edema de toda a extremidade.",
+      B: "Presença de celulite.",
+      C: "Veias colaterais superficiais não varicosas.",
+      D: "Palpação dolorosa ao longo do trajeto de veias do sistema profundo."
+    },
+    correct: "B",
+    explanation: "A presença de celulite não faz parte do escore de Wells para TVP."
+  },
+  {
+    numero: 8,
+    area: "Clínica Médica",
+    question: "Dor crônica difusa, subjetividade dos sintomas, preponderância em mulheres e falta de dados objetivos de imagem e de exames laboratoriais fazem com que a principal suspeita clínica seja de:",
+    options: {
+      A: "Artrite reumatoide.",
+      B: "Polimialgia reumática.",
+      C: "Fibromialgia.",
+      D: "Depressão."
+    },
+    correct: "C",
+    explanation: "A descrição é clássica de fibromialgia, uma síndrome de dor crônica generalizada."
+  },
+  {
+    numero: 9,
+    area: "Clínica Médica",
+    question: "A presença de bandas oligoclonais no líquor sugere fortemente o diagnóstico de:",
+    options: {
+      A: "Alzheimer.",
+      B: "Esclerose múltipla.",
+      C: "Linfoma de células B.",
+      D: "Meningite viral."
+    },
+    correct: "B",
+    explanation: "Bandas oligoclonais no líquor são um marcador importante para esclerose múltipla."
+  },
+  {
+    numero: 10,
+    area: "Clínica Médica",
+    question: "Em relação ao hipotireoidismo, analise as assertivas a seguir: I. Pode-se começar o tratamento de hipotireoidismo com a reposição de levotiroxina sódica na dose de 2 μg/kg/dia no adulto jovem e 1,5 μg/kg/dia total no idoso (sem antecedentes de cardiopatia). II. A medida do TSH sérico em pacientes jovens hipotireoideos só deve ser solicitada para avaliar a reposição hormonal após seis semanas de início do tratamento regular. III. Drogas como anticonvulsivantes, rifampicina e sertralina podem acelerar o metabolismo da levotiroxina e, neste caso, a dose precisa ser ajustada. Quais estão corretas?",
+    options: {
+      A: "Apenas I e II.",
+      B: "Apenas I e III.",
+      C: "Apenas II e III.",
+      D: "I, II e III."
+    },
+    correct: "C",
+    explanation: "Apenas II e III estão corretas. A dose inicial de levotiroxina é geralmente menor que 2 μg/kg/dia."
+  },
+  // Continuação das questões 11 a 40...
+  {
+    numero: 11,
+    area: "Clínica Médica",
+    question: "Sobre o diabetes melito, analise as assertivas a seguir: I. A taxa de glicação da fração A1c da hemoglobina A (HbA1c) é expressa em porcentagem e se relaciona com a média das glicemias diárias nas últimas 3 semanas. II. É recomendada a meta de HbA1c <7,0% para indivíduos com qualquer tipo de diabetes, para prevenção de complicações macrovasculares em longo prazo, desde que não incorra em hipoglicemias graves e frequentes, exceto em idosos. III. Em idosos com diabetes melito, com objetivo de evitar hipoglicemia, uma meta de HbA1c <8,0% deve ser considerada quando houver status funcional comprometido, síndrome de fragilidade, presença de comorbidades que limitem a expectativa de vida e/ou alteração da função cognitiva. Quais estão corretas?",
+    options: {
+      A: "Apenas I e II.",
+      B: "Apenas I e III.",
+      C: "Apenas II e III.",
+      D: "I, II e III."
+    },
+    correct: "C",
+    explanation: "Apenas II e III estão corretas. A HbA1c reflete a glicemia média dos últimos 2-3 meses, não apenas 3 semanas."
+  },
+  {
+    numero: 12,
+    area: "Clínica Médica",
+    question: "Em relação à retocolite ulcerativa, analise as assertivas a seguir: I. Os surtos agudos de retocolite ulcerativa podem ser controlados com derivados do ácido 5-aminossalicílico. II. Os que não responderem ao tratamento com derivados do ácido 5-aminossalicílico devem receber corticosteroides para indução da remissão da retocolite ulcerativa. III. Pacientes com retocolite ulcerativa grave sem resposta ao uso de corticosteroide são candidatos ao uso de ciclosporina. Quais estão corretas?",
+    options: {
+      A: "Apenas I e II.",
+      B: "Apenas I e III.",
+      C: "Apenas II e III.",
+      D: "I, II e III."
+    },
+    correct: "D",
+    explanation: "Todas as assertivas estão corretas e representam a abordagem terapêutica escalonada da retocolite ulcerativa."
   }
+  // ... (continua com as demais questões até a 40)
+
 ];
 
-let idx = 0, score = 0;
+let idx = 0;
+let score = 0;
 const flagged = new Set();
 
 function init() {
@@ -113,20 +283,52 @@ function init() {
 function showQuestion() {
   const q = questions[idx];
   document.getElementById('area-title').textContent = q.area;
-  document.getElementById('question-text').textContent = `${idx + 1}. ${q.question}`;
+  document.getElementById('question-text').textContent = `${q.numero}. ${q.question}`;
+
   const opts = document.getElementById('options');
   opts.innerHTML = '';
-  q.options.forEach(o => {
+
+  for (const key in q.options) {
     const li = document.createElement('li');
-    const btn = document.createElement('button');
-    btn.textContent = o;
-    btn.onclick = () => selectAnswer(o[0]);
-    if (q.answered === o[0]) btn.style.backgroundColor = '#a8d5a8'; // highlight selected
-    li.appendChild(btn);
+    const label = document.createElement('label');
+    label.className = 'option-label';
+
+    if (q.answered) {
+      if (key === q.correct) {
+        label.classList.add('correct');
+      } else if (key === q.answered) {
+        label.classList.add('wrong');
+      }
+    }
+
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'option';
+    input.disabled = !!q.answered;
+    input.checked = q.answered === key;
+    input.onclick = () => selectAnswer(key);
+
+    const span = document.createElement('span');
+    span.textContent = `${key}) ${q.options[key]}`;
+
+    label.appendChild(input);
+    label.appendChild(span);
+    li.appendChild(label);
     opts.appendChild(li);
-  });
-  document.getElementById('feedback').textContent = q.answered ? `Resposta correta: ${q.correct}` : '';
+  }
+
+  const feedback = document.getElementById('feedback');
+  if (q.answered) {
+    feedback.textContent = q.answered === q.correct
+      ? 'Resposta correta!'
+      : `Errado. A resposta correta é: ${q.correct}) ${q.options[q.correct]}`;
+    feedback.style.color = q.answered === q.correct ? 'green' : 'red';
+  } else {
+    feedback.textContent = '';
+  }
+
   updateButtons();
+  updateFlagButton();
 }
 
 function selectAnswer(choice) {
@@ -141,7 +343,10 @@ function selectAnswer(choice) {
 function navigate(step) {
   idx += step;
   if (idx < 0) idx = 0;
-  if (idx >= questions.length) return showResults();
+  if (idx >= questions.length) {
+    showResults();
+    return;
+  }
   showQuestion();
 }
 
@@ -153,24 +358,40 @@ function toggleFlag() {
     flagged.add(idx);
     alert(`Questão ${idx + 1} marcada.`);
   }
+  updateFlagButton();
 }
 
 function updateButtons() {
   document.getElementById('prev').disabled = idx === 0;
-  document.getElementById('next').textContent = idx === questions.length - 1 ? 'Finalizar' : 'Próximo';
+  document.getElementById('next').textContent = idx === questions.length - 1 ? 'Finalizar' : 'Próxima';
+}
+
+function updateFlagButton() {
+  const flagBtn = document.getElementById('flag');
+  const flagIcon = document.getElementById('flag-icon');
+  const isFlagged = flagged.has(idx);
+  flagBtn.textContent = isFlagged ? 'Desmarcar' : 'Marcar questão';
+  flagIcon.classList.toggle('flagged', isFlagged);
 }
 
 function showResults() {
   document.querySelector('main').style.display = 'none';
   document.querySelector('nav').style.display = 'none';
+
   const results = document.getElementById('results');
   results.style.display = 'block';
-  document.getElementById('score').textContent = `Você acertou ${score} de ${questions.length}`;
+
+  const pct = Math.round((score / questions.length) * 100);
+  document.getElementById('score').textContent = `Você acertou ${score} de ${questions.length} questões (${pct}%).`;
+
   const ex = document.getElementById('explanations');
   ex.innerHTML = '';
   questions.forEach((q, i) => {
     const div = document.createElement('div');
-    div.innerHTML = `<strong>${i + 1}. ${q.answered === q.correct ? 'Correta' : 'Errada'}</strong>: ${q.explanation}`;
+    const acertou = q.answered === q.correct;
+    const foiMarcada = flagged.has(i);
+    div.innerHTML = `<strong>${q.numero}. ${acertou ? 'Correta' : 'Errada'}</strong> - Sua resposta: ${q.answered || '-'}; Correta: ${q.correct}. ${foiMarcada ? '⚑ Questão marcada' : ''}<br>Explicação: ${q.explanation}`;
+    div.style.color = acertou ? 'green' : 'red';
     ex.appendChild(div);
   });
 }
