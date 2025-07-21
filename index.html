@@ -1,15 +1,182 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Meu Site no GitHub Pages</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quiz Interativo</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    max-width: 700px;
+    margin: auto;
+    background: #f0f0f0;
+  }
+  main {
+    background: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+  }
+  nav {
+    margin-top: 15px;
+  }
+  button {
+    padding: 10px 15px;
+    margin: 0 5px 10px 0;
+    border: none;
+    background: #3498db;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  button:disabled {
+    background: #ccc;
+    cursor: default;
+  }
+  #options li {
+    margin-bottom: 8px;
+  }
+  #options button {
+    width: 100%;
+    background: #ecf0f1;
+    color: #2c3e50;
+    border-radius: 5px;
+  }
+  #options button:hover {
+    background: #d6eaf8;
+  }
+  #feedback {
+    margin-top: 15px;
+    font-weight: bold;
+  }
+  #results {
+    display: none;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+  }
+  #explanations div {
+    margin-bottom: 10px;
+  }
+</style>
 </head>
 <body>
-  <h1>Bem-vindo ao meu site!</h1>
-  <p>Este é um site simples hospedado no GitHub Pages.</p>
 
-  <!-- Aqui você chama seu script JavaScript -->
-  <script src="script.js"></script>
+<h1>Quiz Interativo</h1>
+
+<main>
+  <h2 id="area-title"></h2>
+  <p id="question-text"></p>
+  <ul id="options"></ul>
+  <div id="feedback"></div>
+</main>
+
+<nav>
+  <button id="prev" disabled>Anterior</button>
+  <button id="flag">Marcar</button>
+  <button id="next">Próximo</button>
+</nav>
+
+<section id="results">
+  <h2>Resultados</h2>
+  <p id="score"></p>
+  <div id="explanations"></div>
+</section>
+
+<script>
+const questions = [
+  {
+    "area": "Clínica Médica",
+    "question": "Sobre a hipertensão arterial sistêmica...",
+    "options": [
+      "A) Apenas I e II.",
+      "B) Apenas I e III.",
+      "C) Apenas II e III.",
+      "D) I, II e III."
+    ],
+    "correct": "B",
+    "explanation": "Explicação da alternativa correta."
+  }
+];
+
+let idx = 0, score = 0;
+const flagged = new Set();
+
+function init() {
+  showQuestion();
+  document.getElementById('next').onclick = () => navigate(1);
+  document.getElementById('prev').onclick = () => navigate(-1);
+  document.getElementById('flag').onclick = toggleFlag;
+  updateButtons();
+}
+
+function showQuestion() {
+  const q = questions[idx];
+  document.getElementById('area-title').textContent = q.area;
+  document.getElementById('question-text').textContent = `${idx + 1}. ${q.question}`;
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  q.options.forEach(o => {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.textContent = o;
+    btn.onclick = () => selectAnswer(o[0]);
+    if (q.answered === o[0]) btn.style.backgroundColor = '#a8d5a8'; // highlight selected
+    li.appendChild(btn);
+    opts.appendChild(li);
+  });
+  document.getElementById('feedback').textContent = q.answered ? `Resposta correta: ${q.correct}` : '';
+  updateButtons();
+}
+
+function selectAnswer(choice) {
+  const q = questions[idx];
+  if (!q.answered) {
+    q.answered = choice;
+    if (choice === q.correct) score++;
+  }
+  showQuestion();
+}
+
+function navigate(step) {
+  idx += step;
+  if (idx < 0) idx = 0;
+  if (idx >= questions.length) return showResults();
+  showQuestion();
+}
+
+function toggleFlag() {
+  if (flagged.has(idx)) {
+    flagged.delete(idx);
+    alert(`Questão ${idx + 1} desmarcada.`);
+  } else {
+    flagged.add(idx);
+    alert(`Questão ${idx + 1} marcada.`);
+  }
+}
+
+function updateButtons() {
+  document.getElementById('prev').disabled = idx === 0;
+  document.getElementById('next').textContent = idx === questions.length - 1 ? 'Finalizar' : 'Próximo';
+}
+
+function showResults() {
+  document.querySelector('main').style.display = 'none';
+  document.querySelector('nav').style.display = 'none';
+  const results = document.getElementById('results');
+  results.style.display = 'block';
+  document.getElementById('score').textContent = `Você acertou ${score} de ${questions.length}`;
+  const ex = document.getElementById('explanations');
+  ex.innerHTML = '';
+  questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.innerHTML = `<strong>${i + 1}. ${q.answered === q.correct ? 'Correta' : 'Errada'}</strong>: ${q.explanation}`;
+    ex.appendChild(div);
+  });
+}
+
+init();
+</script>
+
 </body>
 </html>
