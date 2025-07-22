@@ -1,26 +1,21 @@
-<script>
-  let idx = 0;
-  let score = 0;
-  let questions = [];
-  const flagged = new Set();
+async function init() {
+  try {
+    const response = await fetch('questions.json');
+    if (!response.ok) throw new Error('Erro ao carregar o arquivo JSON');
 
-  async function init() {
-    const data = await fetch('questions.json');
-    const allQuestions = await data.json();
+    const allQuestions = await response.json();
 
-    // Agrupar por área
+    // Agrupar perguntas por área
     const areas = ['Clínica Médica', 'Cirurgia Geral', 'Pediatria', 'MPS', 'Ginecologia e Obstetrícia'];
     const grouped = {};
 
     areas.forEach(area => grouped[area] = []);
 
     allQuestions.forEach(q => {
-      if (grouped[q.area]) {
-        grouped[q.area].push(q);
-      }
+      if (grouped[q.area]) grouped[q.area].push(q);
     });
 
-    // Pegar 5 aleatórias por área
+    // Selecionar 5 aleatórias por área
     questions = areas.flatMap(area => shuffle(grouped[area]).slice(0, 5));
 
     showQuestion();
@@ -28,17 +23,9 @@
     document.getElementById('prev').onclick = () => navigate(-1);
     document.getElementById('flag-icon').onclick = toggleFlagIcon;
     document.getElementById('show-flagged').onclick = showFlaggedQuestions;
-  }
 
-  // Função de embaralhar
-  function shuffle(array) {
-    const arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
+  } catch (err) {
+    console.error('Erro ao inicializar o app:', err);
+    alert('Erro ao carregar as questões. Veja o console para mais detalhes.');
   }
-
-  // (as demais funções permanecem iguais)
-</script>
+}
