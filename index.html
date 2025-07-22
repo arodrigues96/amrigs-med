@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulado AMRIGS - Escolha</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #0e1a2b; /* mesmo fundo azul */
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: #16273e;
+      padding: 40px 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      max-width: 350px;
+      width: 100%;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+      font-weight: normal;
+    }
+
+    button {
+      background-color: #1f3b5b;
+      border: none;
+      color: white;
+      padding: 15px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 0;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #29527a;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Escolha o tipo de prova</h1>
+    <button onclick="window.location.href='index-completo.html'">Prova Completa</button>
+    <button onclick="window.location.href='index-teste25.html'">Prova Teste (25 questões (5 de cada))</button>
+  </div>
+</body>
+</html>
