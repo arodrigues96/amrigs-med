@@ -1,284 +1,153 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Simulado AMRIGS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Interativo</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #0e1a2b;
-      color: #fff;
-    }
-
-    #sidebar {
-      position: fixed;
-      left: 0;
-      top: 0;
-      width: 240px;
-      height: 100vh;
-      background: #16273e;
-      padding: 20px;
-      box-sizing: border-box;
-      overflow-y: auto;
-      z-index: 100;
-    }
-
-    #sidebar h3 {
-      color: #f5a623;
-      margin-top: 0;
-      margin-bottom: 15px;
-      border-bottom: 1px solid #1f3b5b;
-      padding-bottom: 10px;
-      user-select: none;
-      cursor: default;
-    }
-
-    .area-item {
-      margin-bottom: 10px;
-    }
-
-    .area-title {
-      font-weight: bold;
-      padding: 8px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      background-color: #1f3b5b;
-      user-select: none;
-      transition: background-color 0.3s;
+      font-family: Arial, sans-serif;
+      background-color: #0e1a2b;
+      color: #ffffff;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background-color: #183153;
+      padding: 10px 15px;
+      display: flex;
       align-items: center;
+      justify-content: space-between;
     }
 
-    .area-title:hover {
-      background-color: #244063;
+    header h1 {
+      font-size: 18px;
+      margin: 0;
     }
 
-    .area-title.active {
-      background-color: #29527a;
-    }
-
-    .questions-list {
-      margin-top: 5px;
-      padding-left: 15px;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-    }
-
-    .questions-list.expanded {
-      max-height: 500px; /* o suficiente pra mostrar */
-      overflow-y: auto;
-    }
-
-    .question-item {
-      padding: 5px 10px;
-      cursor: pointer;
+    #area-selector {
+      background: #244063;
+      color: white;
+      border: none;
+      padding: 5px;
+      font-size: 14px;
       border-radius: 5px;
-      user-select: none;
-      transition: background-color 0.3s;
-    }
-
-    .question-item:hover {
-      background-color: #244063;
-    }
-
-    .question-item.active {
-      background-color: #1b84e7;
-      font-weight: bold;
-    }
-
-    /* Conteúdo Principal */
-    #content {
-      margin-left: 260px;
-      padding: 20px;
     }
 
     main {
-      max-width: 800px;
-      margin: auto;
-      background: #16273e;
-      padding: 30px;
+      flex-grow: 1;
+      padding: 20px;
+    }
+
+    #question-container {
+      background-color: #1a2b45;
+      padding: 20px;
       border-radius: 10px;
-      margin-top: 20px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.4);
-      position: relative;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
     }
 
-    nav {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
+    #area-title {
+      font-weight: bold;
+      margin-bottom: 10px;
     }
 
-    .btn {
-      background-color: #1f3b5b;
-      border: none;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .btn:hover {
-      background-color: #29527a;
-    }
-
-    ul {
+    #options li {
+      margin: 10px 0;
       list-style: none;
-      padding: 0;
     }
 
     .option-label {
-      display: block;
-      background: #1b2c47;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 8px;
       cursor: pointer;
-      transition: background 0.3s;
+      display: flex;
+      align-items: center;
     }
 
-    .option-label:hover {
-      background: #244063;
+    #feedback {
+      margin-top: 15px;
+      font-weight: bold;
     }
 
-    .correct {
-      background: #225c2e !important;
+    #controls {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
     }
 
-    .wrong {
-      background: #762c2c !important;
-    }
-
-    #flag-icon {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      font-size: 24px;
-      cursor: pointer;
-    }
-
-    .flagged {
-      color: yellow;
-    }
-
-    #flag-sidebar {
-      position: fixed;
-      top: 0;
-      right: -400px;
-      width: 300px;
-      height: 100vh;
-      background: #1b2c47;
-      color: white;
-      padding: 20px;
-      overflow-y: auto;
-      transition: right 0.3s ease;
-      z-index: 1000;
-      box-shadow: -2px 0 10px rgba(0,0,0,0.6);
-    }
-
-    #flag-sidebar.show {
-      right: 0;
-    }
-
-    #flag-sidebar h3 {
-      margin-top: 0;
-    }
-
-    .flagged-question {
-      margin-bottom: 20px;
-      cursor: pointer;
-      border-bottom: 1px solid #444;
-      padding-bottom: 10px;
-    }
-
-    .flagged-question:hover {
+    button {
       background-color: #244063;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
     }
 
-    /* Responsivo */
-    @media (max-width: 768px) {
-      #sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        padding: 10px;
-      }
-      
-      #content {
-        margin-left: 0;
-      }
+    button:hover {
+      background-color: #1c324f;
+    }
+
+    #mobile-menu {
+      background-color: #122239;
+      padding: 15px;
+      border-top: 2px solid #183153;
+    }
+
+    .mobile-area {
+      margin-bottom: 10px;
+    }
+
+    .question-link {
+      display: block;
+      padding: 5px;
+      margin-left: 10px;
+      color: #aad4ff;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .question-link:hover {
+      text-decoration: underline;
+    }
+
+    .flag-button {
+      background: none;
+      border: none;
+      color: yellow;
+      font-size: 20px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
+  <header>
+    <h1>Quiz Interativo</h1>
+    <select id="area-selector">
+      <option value="all">Todas as áreas</option>
+    </select>
+  </header>
 
-  <div id="sidebar">
-    <h3>Áreas e Questões</h3>
-
-    <div class="area-item" data-area="all">
-      <div class="area-title">Todas as Questões <span class="toggle-arrow">▼</span></div>
-      <div class="questions-list"></div>
-    </div>
-
-    <div class="area-item" data-area="Clínica Médica">
-      <div class="area-title">Clínica Médica <span class="toggle-arrow">▼</span></div>
-      <div class="questions-list"></div>
-    </div>
-
-    <div class="area-item" data-area="Cirurgia Geral">
-      <div class="area-title">Cirurgia Geral <span class="toggle-arrow">▼</span></div>
-      <div class="questions-list"></div>
-    </div>
-
-    <div class="area-item" data-area="Ginecologia e Obstetrícia">
-      <div class="area-title">Ginecologia e Obstetrícia <span class="toggle-arrow">▼</span></div>
-      <div class="questions-list"></div>
-    </div>
-
-    <div class="area-item" data-area="Pediatria">
-      <div class="area-title">Pediatria <span class="toggle-arrow">▼</span></div>
-      <div class="questions-list"></div>
-    </div>
-
-    <div class="area-item" data-area="MPS">
-      <div class="area-title">MPS <span class="toggle-arrow">▼</span></div>
-      <div class="questions-list"></div>
-    </div>
-  </div>
-
-  <div id="content">
-    <main>
-      <div id="flag-icon">⚑</div>
-      <h2 id="area-title"></h2>
-      <p id="question-text"></p>
+  <main>
+    <div id="question-container">
+      <div id="area-title"></div>
+      <div id="question-text"></div>
       <ul id="options"></ul>
-      <p id="feedback"></p>
-      <nav>
-        <button class="btn" id="prev">Anterior</button>
-        <button class="btn" id="next">Próxima</button>
-      </nav>
-    </main>
-
-    <div id="flag-sidebar">
-      <h3>Questões Marcadas</h3>
-      <button class="btn" onclick="toggleFlagSidebar()">Fechar</button>
-      <div id="flagged-list"></div>
+      <div id="feedback"></div>
+      <div id="controls">
+        <button onclick="navigate(-1)">Anterior</button>
+        <button onclick="toggleFlag()" class="flag-button">⚑</button>
+        <button onclick="navigate(1)">Próxima</button>
+      </div>
     </div>
-  </div>
+  </main>
+
+  <div id="mobile-menu"></div>
 
   <script>
-    let idx = 0;
-    const flagged = new Set();
-    let currentArea = 'all';
-
-    // Cole suas questões aqui
     const questions = [
-      
+        
   {
     "numero": 1,
     "area": "Clínica Médica",
@@ -1579,104 +1448,44 @@
   "correct": "A",
   "explanation": "Propranolol não eleva os níveis séricos de lítio. Já Enalapril (IECA), Nimesulida (AINE) e Hidroclorotiazida (diurético tiazídico) podem aumentar a concentração de lítio e risco de toxicidade."
   }
-    ];
+    ]; // <- Cole suas questões aqui
+    let idx = 0;
+    let currentArea = 'all';
+    const flagged = new Set();
 
     function init() {
-      renderAllQuestionLists();
-      attachAreaTitleListeners();
-      showQuestion(idx);
-      updateActiveAreaAndQuestion();
-
-      document.getElementById('next').onclick = () => navigate(1);
-      document.getElementById('prev').onclick = () => navigate(-1);
-      document.getElementById('flag-icon').onclick = toggleFlagIcon;
+      populateAreas();
+      showQuestion();
+      document.getElementById('area-selector').onchange = e => {
+        currentArea = e.target.value;
+        idx = 0;
+        showQuestion();
+        renderMobileMenu();
+      };
+      renderMobileMenu();
     }
 
-    function renderAllQuestionLists() {
-      const allAreas = document.querySelectorAll('.area-item');
-      allAreas.forEach(areaDiv => {
-        const area = areaDiv.getAttribute('data-area');
-        const listDiv = areaDiv.querySelector('.questions-list');
-
-        let filteredQuestions;
-        if(area === 'all') {
-          filteredQuestions = questions;
-        } else {
-          filteredQuestions = questions.filter(q => q.area === area);
-        }
-
-        listDiv.innerHTML = '';
-
-        filteredQuestions.forEach(q => {
-          const div = document.createElement('div');
-          div.className = 'question-item';
-          div.textContent = `${q.numero}. ${q.question.substring(0, 50)}...`;
-          div.dataset.numero = q.numero;
-          div.onclick = () => {
-            idx = questions.findIndex(quest => quest.numero == q.numero);
-            currentArea = area;
-            collapseAllExcept(area);
-            showQuestion(idx);
-            updateActiveAreaAndQuestion();
-          };
-          listDiv.appendChild(div);
-        });
-
-        // Start all collapsed
-        listDiv.classList.remove('expanded');
+    function populateAreas() {
+      const areas = [...new Set(questions.map(q => q.area))];
+      const select = document.getElementById('area-selector');
+      areas.forEach(area => {
+        const opt = document.createElement('option');
+        opt.value = area;
+        opt.textContent = area;
+        select.appendChild(opt);
       });
     }
 
-    function attachAreaTitleListeners() {
-      const areaTitles = document.querySelectorAll('.area-title');
-      areaTitles.forEach(title => {
-        title.onclick = () => {
-          const parent = title.parentElement;
-          const area = parent.getAttribute('data-area');
+    function showQuestion() {
+      const filtered = currentArea === 'all' ? questions : questions.filter(q => q.area === currentArea);
+      if (!filtered.length) return;
+      const q = filtered[idx];
 
-          if(parent.querySelector('.questions-list').classList.contains('expanded')) {
-            // Se já expandido, colapsa
-            parent.querySelector('.questions-list').classList.remove('expanded');
-            title.classList.remove('active');
-          } else {
-            collapseAllExcept(area);
-            parent.querySelector('.questions-list').classList.add('expanded');
-            currentArea = area;
-            updateActiveAreaAndQuestion();
-          }
-        };
-      });
-    }
-
-    function collapseAllExcept(areaToKeep) {
-      document.querySelectorAll('.area-item').forEach(areaDiv => {
-        const area = areaDiv.getAttribute('data-area');
-        const title = areaDiv.querySelector('.area-title');
-        const list = areaDiv.querySelector('.questions-list');
-        if(area === areaToKeep) {
-          list.classList.add('expanded');
-          title.classList.add('active');
-        } else {
-          list.classList.remove('expanded');
-          title.classList.remove('active');
-        }
-      });
-    }
-
-    function showQuestion(index) {
-      if (questions.length === 0) {
-        document.getElementById('question-text').textContent = 'Nenhuma questão disponível.';
-        document.getElementById('options').innerHTML = '';
-        document.getElementById('area-title').textContent = '';
-        return;
-      }
-
-      const q = questions[index];
       document.getElementById('area-title').textContent = `Área: ${q.area} - Questão ${q.numero}`;
       document.getElementById('question-text').textContent = q.question;
 
-      const optionsContainer = document.getElementById('options');
-      optionsContainer.innerHTML = '';
+      const options = document.getElementById('options');
+      options.innerHTML = '';
       for (const key in q.options) {
         const li = document.createElement('li');
         const label = document.createElement('label');
@@ -1686,36 +1495,26 @@
         radio.type = 'radio';
         radio.name = 'option';
         radio.value = key;
-
         radio.onchange = () => checkAnswer(key);
 
         label.appendChild(radio);
         label.appendChild(document.createTextNode(` ${key}. ${q.options[key]}`));
         li.appendChild(label);
-        optionsContainer.appendChild(li);
+        options.appendChild(li);
       }
 
       document.getElementById('feedback').textContent = '';
-
-      updateFlagIcon();
-      updateActiveAreaAndQuestion();
+      highlightFlag();
     }
 
-    function updateActiveAreaAndQuestion() {
-      // Atualiza destaque no menu lateral para a questão atual
-      document.querySelectorAll('.question-item').forEach(qItem => {
-        qItem.classList.remove('active');
-      });
-      const currentQuestionNumero = questions[idx].numero;
-      const activeQuestionItem = [...document.querySelectorAll('.question-item')].find(q => q.dataset.numero == currentQuestionNumero);
-      if(activeQuestionItem) activeQuestionItem.classList.add('active');
-
-      // Atualiza área ativa (expandida) se necessário
-      collapseAllExcept(currentArea);
+    function navigate(step) {
+      const filtered = currentArea === 'all' ? questions : questions.filter(q => q.area === currentArea);
+      idx = (idx + step + filtered.length) % filtered.length;
+      showQuestion();
     }
 
     function checkAnswer(selected) {
-      const q = questions[idx];
+      const q = (currentArea === 'all' ? questions : questions.filter(q => q.area === currentArea))[idx];
       const feedback = document.getElementById('feedback');
 
       if (selected === q.correct) {
@@ -1727,70 +1526,49 @@
       }
     }
 
-    function navigate(step) {
-      // Pega todas as questões da área atual
-      let filteredQuestions = currentArea === 'all' ? questions : questions.filter(q => q.area === currentArea);
-      let currentNumero = questions[idx].numero;
-      let currentIndexInFiltered = filteredQuestions.findIndex(q => q.numero === currentNumero);
-
-      currentIndexInFiltered += step;
-      if (currentIndexInFiltered < 0) currentIndexInFiltered = filteredQuestions.length - 1;
-      if (currentIndexInFiltered >= filteredQuestions.length) currentIndexInFiltered = 0;
-
-      const nextNumero = filteredQuestions[currentIndexInFiltered].numero;
-      idx = questions.findIndex(q => q.numero === nextNumero);
-      showQuestion(idx);
+    function toggleFlag() {
+      const q = (currentArea === 'all' ? questions : questions.filter(q => q.area === currentArea))[idx];
+      if (flagged.has(q.numero)) flagged.delete(q.numero);
+      else flagged.add(q.numero);
+      highlightFlag();
     }
 
-    function toggleFlagIcon() {
-      const qnum = questions[idx].numero;
-      if (flagged.has(qnum)) {
-        flagged.delete(qnum);
-      } else {
-        flagged.add(qnum);
-      }
-      updateFlagIcon();
+    function highlightFlag() {
+      const q = (currentArea === 'all' ? questions : questions.filter(q => q.area === currentArea))[idx];
+      const btn = document.querySelector('.flag-button');
+      if (flagged.has(q.numero)) btn.style.color = 'yellow';
+      else btn.style.color = 'white';
     }
 
-    function updateFlagIcon() {
-      const icon = document.getElementById('flag-icon');
-      if (flagged.has(questions[idx].numero)) {
-        icon.classList.add('flagged');
-      } else {
-        icon.classList.remove('flagged');
-      }
-    }
-
-    function toggleFlagSidebar() {
-      const sidebar = document.getElementById('flag-sidebar');
-      sidebar.classList.toggle('show');
-      renderFlaggedList();
-    }
-
-    function renderFlaggedList() {
-      const container = document.getElementById('flagged-list');
+    function renderMobileMenu() {
+      const container = document.getElementById('mobile-menu');
       container.innerHTML = '';
 
-      flagged.forEach(num => {
-        const q = questions.find(q => q.numero === num);
-        if (!q) return;
-        const div = document.createElement('div');
-        div.className = 'flagged-question';
-        div.textContent = `${q.numero}. ${q.question.substring(0, 60)}...`;
-        div.onclick = () => {
-          idx = questions.findIndex(question => question.numero === q.numero);
-          currentArea = q.area;
-          showQuestion(idx);
-          toggleFlagSidebar();
-          collapseAllExcept(currentArea);
-          updateActiveAreaAndQuestion();
-        };
-        container.appendChild(div);
-      });
+      const areas = [...new Set(questions.map(q => q.area))];
+      areas.forEach(area => {
+        const areaDiv = document.createElement('div');
+        areaDiv.className = 'mobile-area';
 
-      if (flagged.size === 0) {
-        container.textContent = 'Nenhuma questão marcada.';
-      }
+        const areaTitle = document.createElement('strong');
+        areaTitle.textContent = area;
+        areaDiv.appendChild(areaTitle);
+
+        const list = questions.filter(q => q.area === area);
+        list.forEach(q => {
+          const link = document.createElement('a');
+          link.className = 'question-link';
+          link.textContent = `${q.numero}. ${q.question.slice(0, 40)}...`;
+          link.onclick = () => {
+            currentArea = area;
+            idx = list.findIndex(qq => qq.numero === q.numero);
+            showQuestion();
+            document.getElementById('area-selector').value = area;
+          };
+          areaDiv.appendChild(link);
+        });
+
+        container.appendChild(areaDiv);
+      });
     }
 
     window.onload = init;
