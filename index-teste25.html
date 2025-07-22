@@ -116,8 +116,8 @@
 
     async function init() {
       try {
-        const res = await fetch('questions.json');
-        if (!res.ok) throw new Error('Erro ao carregar o JSON');
+        const res = await fetch('https://github.com/arodrigues96/amrigs-med/blob/main/questions.json');
+        if (!res.ok) throw new Error('Não encontrou o JSON');
         const all = await res.json();
 
         const grouped = {};
