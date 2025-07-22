@@ -2,14 +2,98 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Simulado AMRIGS</title>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: #0e1a2b;
-      color: #ffffff;
+      color: #fff;
+    }
+
+    #sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 240px;
+      height: 100vh;
+      background: #16273e;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    #sidebar h3 {
+      color: #f5a623;
+      margin-top: 0;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #1f3b5b;
+      padding-bottom: 10px;
+      user-select: none;
+      cursor: default;
+    }
+
+    .area-item {
+      margin-bottom: 10px;
+    }
+
+    .area-title {
+      font-weight: bold;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #1f3b5b;
+      user-select: none;
+      transition: background-color 0.3s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .area-title:hover {
+      background-color: #244063;
+    }
+
+    .area-title.active {
+      background-color: #29527a;
+    }
+
+    .questions-list {
+      margin-top: 5px;
+      padding-left: 15px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .questions-list.expanded {
+      max-height: 500px; /* o suficiente pra mostrar */
+      overflow-y: auto;
+    }
+
+    .question-item {
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 5px;
+      user-select: none;
+      transition: background-color 0.3s;
+    }
+
+    .question-item:hover {
+      background-color: #244063;
+    }
+
+    .question-item.active {
+      background-color: #1b84e7;
+      font-weight: bold;
+    }
+
+    /* Conteúdo Principal */
+    #content {
+      margin-left: 260px;
+      padding: 20px;
     }
 
     main {
@@ -18,7 +102,7 @@
       background: #16273e;
       padding: 30px;
       border-radius: 10px;
-      margin-top: 40px;
+      margin-top: 20px;
       box-shadow: 0 0 15px rgba(0,0,0,0.4);
       position: relative;
     }
@@ -82,41 +166,6 @@
       color: yellow;
     }
 
-    #show-flagged {
-      position: fixed;
-      top: 50px;
-      right: 20px;
-      z-index: 1001;
-      background-color: #f5a623;
-      color: black;
-    }
-
-    #results {
-      display: none;
-      padding: 20px;
-      background: #1b2c47;
-      border-radius: 10px;
-      max-width: 900px;
-      margin: auto;
-      margin-top: 40px;
-    }
-
-    details {
-      margin-bottom: 15px;
-    }
-
-    summary {
-      font-weight: bold;
-    }
-
-    .filters {
-      margin-bottom: 15px;
-    }
-
-    .filters button {
-      margin-right: 10px;
-    }
-
     #flag-sidebar {
       position: fixed;
       top: 0;
@@ -150,44 +199,86 @@
     .flagged-question:hover {
       background-color: #244063;
     }
+
+    /* Responsivo */
+    @media (max-width: 768px) {
+      #sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 10px;
+      }
+      
+      #content {
+        margin-left: 0;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <main>
-    <div id="flag-icon">⚑</div>
-    <h2 id="area-title"></h2>
-    <p id="question-text"></p>
-    <ul id="options"></ul>
-    <p id="feedback"></p>
-    <nav>
-      <button class="btn" id="prev">Anterior</button>
-      <button class="btn" id="next">Próxima</button>
-    </nav>
-  </main>
+  <div id="sidebar">
+    <h3>Áreas e Questões</h3>
 
-  <div id="flag-sidebar">
-    <h3>Questões Marcadas</h3>
-    <button class="btn" onclick="toggleFlagSidebar()">Fechar</button>
-    <div id="flagged-list"></div>
-  </div>
-
-  <div id="results">
-    <h2>Resultado</h2>
-    <p id="score"></p>
-    <div class="filters">
-      <button class="btn" onclick="showFilteredQuestions('all')">Todas as Perguntas</button>
-      <button class="btn" onclick="showFilteredQuestions('correct')">Corretas</button>
-      <button class="btn" onclick="showFilteredQuestions('incorrect')">Incorretas</button>
+    <div class="area-item" data-area="all">
+      <div class="area-title">Todas as Questões <span class="toggle-arrow">▼</span></div>
+      <div class="questions-list"></div>
     </div>
-    <div id="explanations"></div>
+
+    <div class="area-item" data-area="Clínica Médica">
+      <div class="area-title">Clínica Médica <span class="toggle-arrow">▼</span></div>
+      <div class="questions-list"></div>
+    </div>
+
+    <div class="area-item" data-area="Cirurgia Geral">
+      <div class="area-title">Cirurgia Geral <span class="toggle-arrow">▼</span></div>
+      <div class="questions-list"></div>
+    </div>
+
+    <div class="area-item" data-area="Ginecologia e Obstetrícia">
+      <div class="area-title">Ginecologia e Obstetrícia <span class="toggle-arrow">▼</span></div>
+      <div class="questions-list"></div>
+    </div>
+
+    <div class="area-item" data-area="Pediatria">
+      <div class="area-title">Pediatria <span class="toggle-arrow">▼</span></div>
+      <div class="questions-list"></div>
+    </div>
+
+    <div class="area-item" data-area="MPS">
+      <div class="area-title">MPS <span class="toggle-arrow">▼</span></div>
+      <div class="questions-list"></div>
+    </div>
   </div>
+
+  <div id="content">
+    <main>
+      <div id="flag-icon">⚑</div>
+      <h2 id="area-title"></h2>
+      <p id="question-text"></p>
+      <ul id="options"></ul>
+      <p id="feedback"></p>
+      <nav>
+        <button class="btn" id="prev">Anterior</button>
+        <button class="btn" id="next">Próxima</button>
+      </nav>
+    </main>
+
+    <div id="flag-sidebar">
+      <h3>Questões Marcadas</h3>
+      <button class="btn" onclick="toggleFlagSidebar()">Fechar</button>
+      <div id="flagged-list"></div>
+    </div>
+  </div>
+
   <script>
     let idx = 0;
-    let score = 0;
     const flagged = new Set();
+    let currentArea = 'all';
 
+    // Cole suas questões aqui
     const questions = [
+      
   {
     "numero": 1,
     "area": "Clínica Médica",
@@ -1488,200 +1579,221 @@
   "correct": "A",
   "explanation": "Propranolol não eleva os níveis séricos de lítio. Já Enalapril (IECA), Nimesulida (AINE) e Hidroclorotiazida (diurético tiazídico) podem aumentar a concentração de lítio e risco de toxicidade."
   }
-];
+    ];
 
     function init() {
-      showQuestion();
+      renderAllQuestionLists();
+      attachAreaTitleListeners();
+      showQuestion(idx);
+      updateActiveAreaAndQuestion();
+
       document.getElementById('next').onclick = () => navigate(1);
       document.getElementById('prev').onclick = () => navigate(-1);
       document.getElementById('flag-icon').onclick = toggleFlagIcon;
-      document.getElementById('show-flagged').onclick = showFlaggedQuestions;
     }
 
-    function showQuestion() {
-      const q = questions[idx];
-      document.getElementById('area-title').textContent = q.area;
-      document.getElementById('question-text').textContent = `${q.numero}. ${q.question}`;
+    function renderAllQuestionLists() {
+      const allAreas = document.querySelectorAll('.area-item');
+      allAreas.forEach(areaDiv => {
+        const area = areaDiv.getAttribute('data-area');
+        const listDiv = areaDiv.querySelector('.questions-list');
 
-      const opts = document.getElementById('options');
-      opts.innerHTML = '';
+        let filteredQuestions;
+        if(area === 'all') {
+          filteredQuestions = questions;
+        } else {
+          filteredQuestions = questions.filter(q => q.area === area);
+        }
 
+        listDiv.innerHTML = '';
+
+        filteredQuestions.forEach(q => {
+          const div = document.createElement('div');
+          div.className = 'question-item';
+          div.textContent = `${q.numero}. ${q.question.substring(0, 50)}...`;
+          div.dataset.numero = q.numero;
+          div.onclick = () => {
+            idx = questions.findIndex(quest => quest.numero == q.numero);
+            currentArea = area;
+            collapseAllExcept(area);
+            showQuestion(idx);
+            updateActiveAreaAndQuestion();
+          };
+          listDiv.appendChild(div);
+        });
+
+        // Start all collapsed
+        listDiv.classList.remove('expanded');
+      });
+    }
+
+    function attachAreaTitleListeners() {
+      const areaTitles = document.querySelectorAll('.area-title');
+      areaTitles.forEach(title => {
+        title.onclick = () => {
+          const parent = title.parentElement;
+          const area = parent.getAttribute('data-area');
+
+          if(parent.querySelector('.questions-list').classList.contains('expanded')) {
+            // Se já expandido, colapsa
+            parent.querySelector('.questions-list').classList.remove('expanded');
+            title.classList.remove('active');
+          } else {
+            collapseAllExcept(area);
+            parent.querySelector('.questions-list').classList.add('expanded');
+            currentArea = area;
+            updateActiveAreaAndQuestion();
+          }
+        };
+      });
+    }
+
+    function collapseAllExcept(areaToKeep) {
+      document.querySelectorAll('.area-item').forEach(areaDiv => {
+        const area = areaDiv.getAttribute('data-area');
+        const title = areaDiv.querySelector('.area-title');
+        const list = areaDiv.querySelector('.questions-list');
+        if(area === areaToKeep) {
+          list.classList.add('expanded');
+          title.classList.add('active');
+        } else {
+          list.classList.remove('expanded');
+          title.classList.remove('active');
+        }
+      });
+    }
+
+    function showQuestion(index) {
+      if (questions.length === 0) {
+        document.getElementById('question-text').textContent = 'Nenhuma questão disponível.';
+        document.getElementById('options').innerHTML = '';
+        document.getElementById('area-title').textContent = '';
+        return;
+      }
+
+      const q = questions[index];
+      document.getElementById('area-title').textContent = `Área: ${q.area} - Questão ${q.numero}`;
+      document.getElementById('question-text').textContent = q.question;
+
+      const optionsContainer = document.getElementById('options');
+      optionsContainer.innerHTML = '';
       for (const key in q.options) {
         const li = document.createElement('li');
         const label = document.createElement('label');
         label.className = 'option-label';
 
-        if (q.answered) {
-          if (key === q.correct) label.classList.add('correct');
-          else if (key === q.answered) label.classList.add('wrong');
-        }
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'option';
+        radio.value = key;
 
-        const input = document.createElement('input');
-        input.type = 'radio';
-        input.name = 'option';
-        input.disabled = !!q.answered;
-        input.checked = q.answered === key;
-        input.onclick = () => selectAnswer(key);
+        radio.onchange = () => checkAnswer(key);
 
-        const span = document.createElement('span');
-        span.textContent = `${key}) ${q.options[key]}`;
-
-        label.appendChild(input);
-        label.appendChild(span);
+        label.appendChild(radio);
+        label.appendChild(document.createTextNode(` ${key}. ${q.options[key]}`));
         li.appendChild(label);
-        opts.appendChild(li);
+        optionsContainer.appendChild(li);
       }
 
-      const feedback = document.getElementById('feedback');
-      if (q.answered) {
-        feedback.textContent = q.answered === q.correct
-          ? 'Resposta correta!'
-          : `Errado. A resposta correta é: ${q.correct}) ${q.options[q.correct]}`;
-        feedback.style.color = q.answered === q.correct ? 'lightgreen' : 'tomato';
-      } else {
-        feedback.textContent = '';
-      }
+      document.getElementById('feedback').textContent = '';
 
-      updateButtons();
-      updateFlagButton();
+      updateFlagIcon();
+      updateActiveAreaAndQuestion();
     }
 
-    function selectAnswer(choice) {
+    function updateActiveAreaAndQuestion() {
+      // Atualiza destaque no menu lateral para a questão atual
+      document.querySelectorAll('.question-item').forEach(qItem => {
+        qItem.classList.remove('active');
+      });
+      const currentQuestionNumero = questions[idx].numero;
+      const activeQuestionItem = [...document.querySelectorAll('.question-item')].find(q => q.dataset.numero == currentQuestionNumero);
+      if(activeQuestionItem) activeQuestionItem.classList.add('active');
+
+      // Atualiza área ativa (expandida) se necessário
+      collapseAllExcept(currentArea);
+    }
+
+    function checkAnswer(selected) {
       const q = questions[idx];
-      if (!q.answered) {
-        q.answered = choice;
-        if (choice === q.correct) score++;
+      const feedback = document.getElementById('feedback');
+
+      if (selected === q.correct) {
+        feedback.textContent = 'Resposta correta!';
+        feedback.style.color = 'lightgreen';
+      } else {
+        feedback.textContent = `Resposta incorreta. ${q.explanation || ''}`;
+        feedback.style.color = 'red';
       }
-      showQuestion();
     }
 
     function navigate(step) {
-      idx += step;
-      if (idx < 0) idx = 0;
-      if (idx >= questions.length) {
-        showResults();
-        return;
-      }
-      showQuestion();
+      // Pega todas as questões da área atual
+      let filteredQuestions = currentArea === 'all' ? questions : questions.filter(q => q.area === currentArea);
+      let currentNumero = questions[idx].numero;
+      let currentIndexInFiltered = filteredQuestions.findIndex(q => q.numero === currentNumero);
+
+      currentIndexInFiltered += step;
+      if (currentIndexInFiltered < 0) currentIndexInFiltered = filteredQuestions.length - 1;
+      if (currentIndexInFiltered >= filteredQuestions.length) currentIndexInFiltered = 0;
+
+      const nextNumero = filteredQuestions[currentIndexInFiltered].numero;
+      idx = questions.findIndex(q => q.numero === nextNumero);
+      showQuestion(idx);
     }
 
     function toggleFlagIcon() {
-      flagged.has(idx) ? flagged.delete(idx) : flagged.add(idx);
-      updateFlagButton();
-    }
-
-    function updateButtons() {
-      document.getElementById('prev').disabled = idx === 0;
-      document.getElementById('next').textContent = idx === questions.length - 1 ? 'Finalizar' : 'Próxima';
-    }
-
-    function updateFlagButton() {
-      const icon = document.getElementById('flag-icon');
-      icon.classList.remove('flagged');
-      icon.textContent = flagged.has(idx) ? '✔️' : '⚑';
-      if (flagged.has(idx)) icon.classList.add('flagged');
-    }
-
-    function showFlaggedQuestions() {
-      if (flagged.size === 0) {
-        alert('Nenhuma questão foi marcada ainda.');
-        return;
+      const qnum = questions[idx].numero;
+      if (flagged.has(qnum)) {
+        flagged.delete(qnum);
+      } else {
+        flagged.add(qnum);
       }
+      updateFlagIcon();
+    }
 
-      const modal = document.createElement('div');
-      modal.style.position = 'fixed';
-      modal.style.top = '0';
-      modal.style.left = '0';
-      modal.style.width = '100vw';
-      modal.style.height = '100vh';
-      modal.style.background = 'rgba(0,0,0,0.7)';
-      modal.style.display = 'flex';
-      modal.style.justifyContent = 'center';
-      modal.style.alignItems = 'center';
-      modal.style.zIndex = 1000;
+    function updateFlagIcon() {
+      const icon = document.getElementById('flag-icon');
+      if (flagged.has(questions[idx].numero)) {
+        icon.classList.add('flagged');
+      } else {
+        icon.classList.remove('flagged');
+      }
+    }
 
-      const content = document.createElement('div');
-      content.style.background = '#1b2c47';
-      content.style.padding = '20px';
-      content.style.borderRadius = '10px';
-      content.style.color = '#fff';
-      content.style.maxHeight = '90vh';
-      content.style.overflowY = 'auto';
+    function toggleFlagSidebar() {
+      const sidebar = document.getElementById('flag-sidebar');
+      sidebar.classList.toggle('show');
+      renderFlaggedList();
+    }
 
-      const close = document.createElement('button');
-      close.textContent = 'Fechar';
-      close.className = 'btn';
-      close.onclick = () => document.body.removeChild(modal);
+    function renderFlaggedList() {
+      const container = document.getElementById('flagged-list');
+      container.innerHTML = '';
 
-      content.appendChild(close);
-      flagged.forEach(i => {
-        const q = questions[i];
+      flagged.forEach(num => {
+        const q = questions.find(q => q.numero === num);
+        if (!q) return;
         const div = document.createElement('div');
-        div.innerHTML = `<h3>${q.numero}. ${q.area}</h3><p>${q.question}</p>`;
-        const go = document.createElement('button');
-        go.textContent = 'Ir para esta questão';
-        go.className = 'btn';
-        go.onclick = () => {
-          idx = i;
-          document.body.removeChild(modal);
-          showQuestion();
+        div.className = 'flagged-question';
+        div.textContent = `${q.numero}. ${q.question.substring(0, 60)}...`;
+        div.onclick = () => {
+          idx = questions.findIndex(question => question.numero === q.numero);
+          currentArea = q.area;
+          showQuestion(idx);
+          toggleFlagSidebar();
+          collapseAllExcept(currentArea);
+          updateActiveAreaAndQuestion();
         };
-        div.appendChild(go);
-        content.appendChild(div);
+        container.appendChild(div);
       });
 
-      modal.appendChild(content);
-      document.body.appendChild(modal);
+      if (flagged.size === 0) {
+        container.textContent = 'Nenhuma questão marcada.';
+      }
     }
 
-    function showResults() {
-      document.querySelector('main').style.display = 'none';
-      document.querySelector('nav').style.display = 'none';
-
-      const results = document.getElementById('results');
-      results.style.display = 'block';
-
-      const pct = Math.round((score / questions.length) * 100);
-      document.getElementById('score').textContent = `Você acertou ${score} de ${questions.length} questões (${pct}%).`;
-
-      showFilteredQuestions('all');
-    }
-
-    function showFilteredQuestions(filter) {
-  const ex = document.getElementById('explanations');
-  ex.innerHTML = '';
-
-  questions.forEach((q, i) => {
-    const acertou = q.answered === q.correct;
-    const foiMarcada = flagged.has(i);
-
-    if (
-      (filter === 'correct' && !acertou) ||
-      (filter === 'incorrect' && acertou)
-    ) return;
-
-    const div = document.createElement('div');
-
-    const marcadaTexto = foiMarcada
-      ? `<br><span style="color: yellow;">⚑ Questão marcada</span>`
-      : '';
-
-    div.innerHTML =
-      `<details>
-        <summary style="color:${acertou ? 'lightgreen' : 'tomato'};">
-          ${q.numero}. ${acertou ? 'Correta' : 'Errada'}
-          <br><span style="color: white;">Sua resposta: ${q.answered ? `${q.answered}) ${q.options[q.answered]}` : '-'}</span>
-          <br>Correta: ${q.correct}) ${q.options[q.correct]}
-          ${marcadaTexto}
-        </summary>
-        <p style="margin-left:15px;">Explicação: ${q.explanation}</p>
-      </details>`;
-    ex.appendChild(div);
-  });
-
-    }
-
-    init();
+    window.onload = init;
   </script>
 </body>
 </html>
