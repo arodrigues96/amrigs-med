@@ -32,14 +32,6 @@
       text-align: center;
     }
 
-    h1 {
-      font-weight: 300;
-      font-size: 2.5rem;
-      margin-bottom: 40px;
-      color: #e0e6f3;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
-    }
-
     button {
       background: linear-gradient(135deg, #3a67af, #2a4c8c);
       border: none;
@@ -70,6 +62,13 @@
       box-shadow: 0 5px 12px rgba(58, 103, 175, 0.6);
     }
 
+    button span {
+      display: block;
+      font-size: 15px;
+      opacity: 0.85;
+      margin-top: 4px;
+    }
+
     /* Terceiro botão com estilo diferente */
     button.spotify-btn {
       background: linear-gradient(135deg, #1db954, #1aa34a);
@@ -87,8 +86,14 @@
 </head>
 <body>
   <div class="container">
-    <button onclick="window.location.href='index-completo.html'">🧠 Prova Completa      (100 questões) </button>
-    <button onclick="window.location.href='index-teste25.html'">💊 Prova Mini      (20 questões)</button>
+    <button onclick="window.location.href='index-completo.html'">
+      🧠 Prova Completa
+      <span>(100 questões)</span>
+    </button>
+    <button onclick="window.location.href='index-teste25.html'">
+      💊 Prova Mini
+      <span>(20 questões)</span>
+    </button>
     <button class="spotify-btn" onclick="window.open('https://open.spotify.com/track/4DnrAI8WyUY6gkOwl8GlPN?si=PxQdYkJGThus2uD7GYuGpg&context=spotify%3Asearch', '_blank')">
       💃 Caso não queira fazer as provas, ouça essa música
     </button>
