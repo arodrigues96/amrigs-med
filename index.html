@@ -55,6 +55,9 @@
       transition: all 0.3s ease;
       letter-spacing: 0.03em;
       user-select: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     button:hover,
@@ -75,6 +78,9 @@
       background: linear-gradient(135deg, #1db954, #1aa34a);
       box-shadow: 0 6px 15px rgba(29, 185, 84, 0.6);
       font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     button.spotify-btn:hover,
@@ -84,14 +90,24 @@
       transform: translateY(-2px);
     }
 
+    button.spotify-btn svg {
+      margin-right: 10px;
+      vertical-align: middle;
+      fill: white;
+      width: 24px;
+      height: 24px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Escolha o tipo de prova</h1>
+    <h1>Dra. Elisa, escolha uma das opções abaixo:</h1>
     <button onclick="window.location.href='index-completo.html'">Prova Completa</button>
     <button onclick="window.location.href='index-teste25.html'">Prova Teste (25 questões - 5 de cada)</button>
     <button class="spotify-btn" onclick="window.open('https://open.spotify.com/track/4DnrAI8WyUY6gkOwl8GlPN?si=PxQdYkJGThus2uD7GYuGpg&context=spotify%3Asearch', '_blank')">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 168" aria-hidden="true" focusable="false">
+        <path d="M84 0a84 84 0 1 0 84 84A84.1 84.1 0 0 0 84 0zm38.6 121.7a5.6 5.6 0 0 1-7.7 1.9c-21-12.8-47.4-15.7-78.5-8.3a5.6 5.6 0 1 1-2.7-11c33.5-8.2 62.3-5 85.3 9.4a5.6 5.6 0 0 1 3.6 7zM131 98.8a7 7 0 0 1-9.6 2.5c-24-14.6-60.8-19-89.3-10a7 7 0 1 1-3.4-13.4c32.9-8.3 72.5-3.4 99 11.4a7 7 0 0 1 3.4 9.5zm6.1-19.4a8.4 8.4 0 0 1-11.4 3a97 97 0 0 0-78.7-10.9 8.4 8.4 0 0 1-4.3-16.3c31.9-8.6 72.3-3.8 99.6 12.3a8.4 8.4 0 0 1 3 11.9z"/>
+      </svg>
       Caso não queira fazer as provas, ouça essa música
     </button>
   </div>
