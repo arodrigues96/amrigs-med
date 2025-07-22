@@ -1,92 +1,135 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Simulado - AMRIGS</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      max-width: 700px;
-      margin: auto;
-      background: #f0f0f0;
-    }
-    main {
-      background: white;
-      padding: 15px 25px;
-      border-radius: 8px;
-      position: relative;
-    }
-    nav {
-      margin-top: 15px;
-    }
-    button {
-      padding: 10px 15px;
-      margin: 0 5px 10px 0;
-      border: none;
-      background: #3498db;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:disabled {
-      background: #ccc;
-      cursor: default;
-    }
-    #options {
-      list-style: none;
-      padding: 0;
-    }
-    .option-label {
-      display: flex;
-      align-items: center;
-      margin-bottom: 8px;
-      padding: 10px;
-      border-radius: 5px;
-      cursor: pointer;
-      background-color: #ecf0f1;
-    }
-    .option-label.correct {
-      background-color: #c8e6c9;
-    }
-    .option-label.wrong {
-      background-color: #ffcdd2;
-    }
-    input[type="radio"] {
-      margin-right: 10px;
-    }
-    #feedback {
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    #results {
-      display: none;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-    }
-    #explanations div {
-      margin-bottom: 10px;
-    }
-    .flag-icon {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 24px;
-      color: gray;
-    }
-    .flagged {
-      color: gold;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Simulado - AMRIGS </title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    max-width: 700px;
+    margin: auto;
+    background: #f0f0f0;
+  }
+  main {
+    background: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    position: relative;
+  }
+  nav {
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  button {
+    padding: 10px 15px;
+    border: none;
+    background: #3498db;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    flex: 1;
+    min-width: 120px;
+  }
+  button:disabled {
+    background: #ccc;
+    cursor: default;
+  }
+  #options {
+    list-style: none;
+    padding: 0;
+  }
+  .option-label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #ecf0f1;
+  }
+  .option-label.correct {
+    background-color: #c8e6c9;
+  }
+  .option-label.wrong {
+    background-color: #ffcdd2;
+  }
+  input[type="radio"] {
+    margin-right: 10px;
+  }
+  #feedback {
+    margin-top: 15px;
+    font-weight: bold;
+  }
+  #results {
+    display: none;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+  }
+  #explanations div {
+    margin-bottom: 10px;
+  }
+  #flag-icon {
+  position: absolute;
+  top: 110px;
+  right: 620px;
+  font-size: 1.5em;
+  cursor: pointer;
+  color: gray;
+  transition: color 0.3s ease;
+}
+
+#flag-icon.flagged {
+  color: gold;
+}
+
+#flag-icon.answered {
+  color: green;
+  content: "✔️";
+}
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
+    overflow: auto;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .modal-close {
+    float: right;
+    background: #e74c3c;
+  }
+  .flagged-question {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+  }
+  .go-to-btn {
+    margin-top: 10px;
+    background: #2ecc71;
+  }
+</style>
 </head>
 <body>
 
 <h1>Simulado de questões - AMRIGS</h1>
 
 <main>
-  <div class="flag-icon" id="flag-icon">⚑</div>
   <h2 id="area-title"></h2>
   <p id="question-text"></p>
   <ul id="options"></ul>
@@ -95,8 +138,9 @@
 
 <nav>
   <button id="prev" disabled>Anterior</button>
-  <button id="flag">Marcar questão</button>
+  <div id="flag-icon" title="Marcar questão">⚑</div>
   <button id="next">Próxima</button>
+  <button id="show-flagged">Perguntas Marcadas</button>
 </nav>
 
 <section id="results">
@@ -105,6 +149,234 @@
   <div id="explanations"></div>
 </section>
 
-<script src="script.js"></script>
+<script>
+const questions = [
+  {
+    "numero": 1,
+    "area": "Clínica Médica",
+    "question": "Sobre a hipertensão arterial sistêmica, analise as assertivas a seguir: I. Para diagnóstico, indica-se a medição anual de pressão arterial se a pressão arterial aferida for inferior a 140/90 mmHg. II. O diagnóstico da hipertensão arterial sistêmica deve ser baseado na medição da pressão fora do consultório com monitorização ambulatorial da pressão arterial, desde que seja viável sua realização. III. História prévia de pré-eclâmpsia em mulheres é fator de risco para hipertensão arterial sistêmica. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "numero": 2,
+    "area": "Clínica Médica",
+    "question": "Sobre a dengue, analise as assertivas a seguir: I. Existem técnicas laboratoriais para identificação do vírus (até o 5º dia de início da doença) e pesquisa de anticorpos (a partir do 6º dia de início da doença). II. O tratamento inclui medidas de suporte, hidratação, repouso e antibioticoterapia. III. O controle do vetor Aedes aegypti é o principal método para a prevenção. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "numero": 100,
+    "area": "Clínica Médica",
+    "question": "Paciente com dor lombar, anemia, hipercalcemia e creatinina elevada. Eletroforese com pico monoclonal. Diagnóstico:",
+    "options": {
+      "A": "Linfoma não Hodgkin.",
+      "B": "Leucemia linfoide aguda.",
+      "C": "Mieloma múltiplo.",
+      "D": "Doença de Hodgkin."
+    },
+    "correct": "A",
+    "explanation": ""
+  }
+];
+
+let idx = 0;
+let score = 0;
+const flagged = new Set();
+
+function init() {
+  showQuestion();
+  document.getElementById('next').onclick = () => navigate(1);
+  document.getElementById('prev').onclick = () => navigate(-1);
+  document.getElementById('flag-icon').onclick = toggleFlagIcon;
+  document.getElementById('show-flagged').onclick = showFlaggedQuestions;
+  updateButtons();
+}
+
+function showQuestion() {
+  const q = questions[idx];
+  document.getElementById('area-title').textContent = q.area;
+  document.getElementById('question-text').textContent = `${q.numero}. ${q.question}`;
+
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+
+  for (const key in q.options) {
+    const li = document.createElement('li');
+    const label = document.createElement('label');
+    label.className = 'option-label';
+
+    if (q.answered) {
+      if (key === q.correct) label.classList.add('correct');
+      else if (key === q.answered) label.classList.add('wrong');
+    }
+
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'option';
+    input.disabled = !!q.answered;
+    input.checked = q.answered === key;
+    input.onclick = () => selectAnswer(key);
+
+    const span = document.createElement('span');
+    span.textContent = `${key}) ${q.options[key]}`;
+
+    label.appendChild(input);
+    label.appendChild(span);
+    li.appendChild(label);
+    opts.appendChild(li);
+  }
+
+  const feedback = document.getElementById('feedback');
+  if (q.answered) {
+    feedback.textContent = q.answered === q.correct
+      ? 'Resposta correta!'
+      : `Errado. A resposta correta é: ${q.correct}) ${q.options[q.correct]}`;
+    feedback.style.color = q.answered === q.correct ? 'green' : 'red';
+  } else {
+    feedback.textContent = '';
+  }
+
+  updateButtons();
+  updateFlagButton();
+}
+
+function selectAnswer(choice) {
+  const q = questions[idx];
+  if (!q.answered) {
+    q.answered = choice;
+    if (choice === q.correct) score++;
+  }
+  showQuestion();
+}
+
+function navigate(step) {
+  idx += step;
+  if (idx < 0) idx = 0;
+  if (idx >= questions.length) {
+    showResults();
+    return;
+  }
+  showQuestion();
+}
+
+function toggleFlagIcon() {
+  if (flagged.has(idx)) {
+    flagged.delete(idx);
+  } else {
+    flagged.add(idx);
+  }
+  updateFlagButton();
+}
+
+function updateButtons() {
+  document.getElementById('prev').disabled = idx === 0;
+  document.getElementById('next').textContent = idx === questions.length - 1 ? 'Finalizar' : 'Próxima';
+}
+
+function updateFlagButton() {
+  const icon = document.getElementById('flag-icon');
+  icon.classList.remove('flagged', 'answered');
+
+  if (flagged.has(idx)) {
+    icon.classList.add('flagged');
+    icon.textContent = '✔️';
+  } else {
+    icon.textContent = '⚑';
+  }
+}
+
+function showFlaggedQuestions() {
+  if (flagged.size === 0) {
+    alert('Nenhuma questão foi marcada ainda.');
+    return;
+  }
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+
+  const content = document.createElement('div');
+  content.className = 'modal-content';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'modal-close';
+  closeBtn.textContent = 'Fechar';
+  closeBtn.onclick = () => document.body.removeChild(modal);
+
+  const title = document.createElement('h2');
+  title.textContent = 'Perguntas Marcadas';
+  title.style.marginTop = '0';
+
+  content.appendChild(closeBtn);
+  content.appendChild(title);
+
+  const flaggedList = Array.from(flagged).sort((a, b) => a - b);
+  flaggedList.forEach(i => {
+    const q = questions[i];
+    const div = document.createElement('div');
+    div.className = 'flagged-question';
+
+    const questionTitle = document.createElement('h3');
+    questionTitle.textContent = `${q.numero}. ${q.area} - Questão ${i + 1}`;
+    
+    const questionText = document.createElement('p');
+    questionText.textContent = q.question;
+    
+    const goToBtn = document.createElement('button');
+    goToBtn.className = 'go-to-btn';
+    goToBtn.textContent = 'Ir para esta questão';
+    goToBtn.onclick = () => {
+      document.body.removeChild(modal);
+      idx = i;
+      showQuestion();
+    };
+
+    div.appendChild(questionTitle);
+    div.appendChild(questionText);
+    div.appendChild(goToBtn);
+    content.appendChild(div);
+  });
+
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+}
+
+function showResults() {
+  document.querySelector('main').style.display = 'none';
+  document.querySelector('nav').style.display = 'none';
+
+  const results = document.getElementById('results');
+  results.style.display = 'block';
+
+  const pct = Math.round((score / questions.length) * 100);
+  document.getElementById('score').textContent = `Você acertou ${score} de ${questions.length} questões (${pct}%).`;
+
+  const ex = document.getElementById('explanations');
+  ex.innerHTML = '';
+  questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    const acertou = q.answered === q.correct;
+    const foiMarcada = flagged.has(i);
+    div.innerHTML = `<strong>${q.numero}. ${acertou ? 'Correta' : 'Errada'}</strong> - Sua resposta: ${q.answered || '-'}; Correta: ${q.correct}. ${foiMarcada ? '⚑ Questão marcada' : ''}<br>Explicação: ${q.explanation}`;
+    div.style.color = acertou ? 'green' : 'red';
+    ex.appendChild(div);
+  });
+}
+
+init();
+</script>
+
 </body>
 </html>
