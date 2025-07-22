@@ -1,31 +1,298 @@
-async function init() {
-  try {
-    const response = await fetch('questions.json');
-    if (!response.ok) throw new Error('Erro ao carregar o arquivo JSON');
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simulado AMRIGS</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #0e1a2b;
+      color: #ffffff;
+    }
+    main {
+      max-width: 800px;
+      margin: auto;
+      background: #16273e;
+      padding: 30px;
+      border-radius: 10px;
+      margin-top: 40px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.4);
+      position: relative;
+    }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    .btn {
+      background-color: #1f3b5b;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn:hover {
+      background-color: #29527a;
+    }
+    ul { list-style: none; padding: 0; }
+    .option-label {
+      display: block;
+      background: #1b2c47;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .option-label:hover { background: #244063; }
+    .correct { background: #225c2e !important; }
+    .wrong { background: #762c2c !important; }
+    #flag-icon {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .flagged { color: yellow; }
+    #show-flagged {
+      position: fixed;
+      top: 50px;
+      right: 20px;
+      z-index: 1001;
+      background-color: #f5a623;
+      color: black;
+    }
+    #results {
+      display: none;
+      padding: 20px;
+      background: #1b2c47;
+      border-radius: 10px;
+      max-width: 900px;
+      margin: auto;
+      margin-top: 40px;
+    }
+    details { margin-bottom: 15px; }
+    summary { font-weight: bold; }
+    .filters { margin-bottom: 15px; }
+    .filters button { margin-right: 10px; }
+  </style>
+</head>
+<body>
 
-    const allQuestions = await response.json();
+  <main>
+    <div id="flag-icon">⚑</div>
+    <h2 id="area-title"></h2>
+    <p id="question-text"></p>
+    <ul id="options"></ul>
+    <p id="feedback"></p>
+    <button class="btn" id="show-flagged">Marcadas</button>
+    <nav>
+      <button class="btn" id="prev">Anterior</button>
+      <button class="btn" id="next">Próxima</button>
+    </nav>
+  </main>
 
-    // Agrupar perguntas por área
-    const areas = ['Clínica Médica', 'Cirurgia Geral', 'Pediatria', 'MPS', 'Ginecologia e Obstetrícia'];
-    const grouped = {};
+  <div id="results">
+    <h2>Resultado</h2>
+    <p id="score"></p>
+    <div class="filters">
+      <button class="btn" onclick="showFilteredQuestions('all')">Todas as Perguntas</button>
+      <button class="btn" onclick="showFilteredQuestions('correct')">Corretas</button>
+      <button class="btn" onclick="showFilteredQuestions('incorrect')">Incorretas</button>
+    </div>
+    <div id="explanations"></div>
+  </div>
 
-    areas.forEach(area => grouped[area] = []);
+  <script>
+    let idx = 0;
+    let score = 0;
+    let questions = [];
+    const flagged = new Set();
 
-    allQuestions.forEach(q => {
-      if (grouped[q.area]) grouped[q.area].push(q);
-    });
+    async function init() {
+      try {
+        const res = await fetch('questions.json');
+        if (!res.ok) throw new Error('Erro ao carregar o JSON');
+        const all = await res.json();
 
-    // Selecionar 5 aleatórias por área
-    questions = areas.flatMap(area => shuffle(grouped[area]).slice(0, 5));
+        const grouped = {};
+        const areas = ['Clínica Médica', 'Cirurgia Geral', 'Pediatria', 'MPS', 'Ginecologia e Obstetrícia'];
 
-    showQuestion();
-    document.getElementById('next').onclick = () => navigate(1);
-    document.getElementById('prev').onclick = () => navigate(-1);
-    document.getElementById('flag-icon').onclick = toggleFlagIcon;
-    document.getElementById('show-flagged').onclick = showFlaggedQuestions;
+        for (const area of areas) grouped[area] = [];
 
-  } catch (err) {
-    console.error('Erro ao inicializar o app:', err);
-    alert('Erro ao carregar as questões. Veja o console para mais detalhes.');
-  }
-}
+        for (const q of all) {
+          if (grouped[q.area]) grouped[q.area].push(q);
+        }
+
+        questions = areas.flatMap(area => shuffle(grouped[area]).slice(0, 5));
+        showQuestion();
+        document.getElementById('next').onclick = () => navigate(1);
+        document.getElementById('prev').onclick = () => navigate(-1);
+        document.getElementById('flag-icon').onclick = toggleFlagIcon;
+        document.getElementById('show-flagged').onclick = showFlaggedQuestions;
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao carregar questões. Veja o console.');
+      }
+    }
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function showQuestion() {
+      const q = questions[idx];
+      document.getElementById('area-title').textContent = q.area;
+      document.getElementById('question-text').textContent = `${q.numero}. ${q.question}`;
+      const opts = document.getElementById('options');
+      opts.innerHTML = '';
+
+      for (const key in q.options) {
+        const li = document.createElement('li');
+        const label = document.createElement('label');
+        label.className = 'option-label';
+
+        if (q.answered) {
+          if (key === q.correct) label.classList.add('correct');
+          else if (key === q.answered) label.classList.add('wrong');
+        }
+
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'option';
+        input.disabled = !!q.answered;
+        input.checked = q.answered === key;
+        input.onclick = () => selectAnswer(key);
+
+        const span = document.createElement('span');
+        span.textContent = `${key}) ${q.options[key]}`;
+
+        label.appendChild(input);
+        label.appendChild(span);
+        li.appendChild(label);
+        opts.appendChild(li);
+      }
+
+      const feedback = document.getElementById('feedback');
+      feedback.textContent = q.answered
+        ? (q.answered === q.correct
+          ? 'Resposta correta!'
+          : `Errado. A resposta correta é: ${q.correct}) ${q.options[q.correct]}`)
+        : '';
+      feedback.style.color = q.answered === q.correct ? 'lightgreen' : 'tomato';
+
+      updateButtons();
+      updateFlagButton();
+    }
+
+    function selectAnswer(choice) {
+      const q = questions[idx];
+      if (!q.answered) {
+        q.answered = choice;
+        if (choice === q.correct) score++;
+      }
+      showQuestion();
+    }
+
+    function navigate(step) {
+      idx += step;
+      if (idx < 0) idx = 0;
+      if (idx >= questions.length) {
+        showResults();
+        return;
+      }
+      showQuestion();
+    }
+
+    function toggleFlagIcon() {
+      flagged.has(idx) ? flagged.delete(idx) : flagged.add(idx);
+      updateFlagButton();
+    }
+
+    function updateButtons() {
+      document.getElementById('prev').disabled = idx === 0;
+      document.getElementById('next').textContent = idx === questions.length - 1 ? 'Finalizar' : 'Próxima';
+    }
+
+    function updateFlagButton() {
+      const icon = document.getElementById('flag-icon');
+      icon.textContent = flagged.has(idx) ? '✔️' : '⚑';
+      icon.classList.toggle('flagged', flagged.has(idx));
+    }
+
+    function showFlaggedQuestions() {
+      if (flagged.size === 0) return alert('Nenhuma questão marcada.');
+
+      const list = [...flagged].map(i => {
+        const q = questions[i];
+        return `<div>
+          <strong>${q.numero} - ${q.area}</strong><br>
+          ${q.question}<br>
+          <button class="btn" onclick="goToQuestion(${i})">Ir para esta questão</button>
+        </div><hr>`;
+      }).join('');
+      
+      const modal = document.createElement('div');
+      modal.innerHTML = `<div style="background:#1b2c47;padding:20px;border-radius:10px;color:#fff;">
+        <button class="btn" onclick="this.parentElement.parentElement.remove()">Fechar</button>
+        <h3>Marcadas:</h3>${list}
+      </div>`;
+      Object.assign(modal.style, {
+        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+        background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', zIndex: 1000
+      });
+      document.body.appendChild(modal);
+    }
+
+    function goToQuestion(i) {
+      idx = i;
+      document.querySelector('div[style*="z-index: 1000"]').remove();
+      showQuestion();
+    }
+
+    function showResults() {
+      document.querySelector('main').style.display = 'none';
+      document.querySelector('nav').style.display = 'none';
+      const results = document.getElementById('results');
+      results.style.display = 'block';
+      const pct = Math.round((score / questions.length) * 100);
+      document.getElementById('score').textContent = `Você acertou ${score} de ${questions.length} questões (${pct}%).`;
+      showFilteredQuestions('all');
+    }
+
+    function showFilteredQuestions(filter) {
+      const ex = document.getElementById('explanations');
+      ex.innerHTML = '';
+
+      questions.forEach((q, i) => {
+        const acertou = q.answered === q.correct;
+        if ((filter === 'correct' && !acertou) || (filter === 'incorrect' && acertou)) return;
+
+        const marcadaTexto = flagged.has(i) ? `<br><span style="color: yellow;">⚑ Marcada</span>` : '';
+
+        ex.innerHTML += `<details>
+          <summary style="color:${acertou ? 'lightgreen' : 'tomato'};">
+            ${q.numero}. ${acertou ? 'Correta' : 'Errada'}
+            <br><span style="color: white;">Sua resposta: ${q.answered ? `${q.answered}) ${q.options[q.answered]}` : '-'}</span>
+            <br>Correta: ${q.correct}) ${q.options[q.correct]}${marcadaTexto}
+          </summary>
+          <p style="margin-left:15px;">Explicação: ${q.explanation}</p>
+        </details>`;
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
