@@ -1,1 +1,1698 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simulado AMRIGS</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #0e1a2b;
+      color: #ffffff;
+    }
 
+    main {
+      max-width: 800px;
+      margin: auto;
+      background: #16273e;
+      padding: 30px;
+      border-radius: 10px;
+      margin-top: 40px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.4);
+      position: relative;
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    .btn {
+      background-color: #1f3b5b;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #29527a;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .option-label {
+      display: block;
+      background: #1b2c47;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .option-label:hover {
+      background: #244063;
+    }
+
+    .correct {
+      background: #225c2e !important;
+    }
+
+    .wrong {
+      background: #762c2c !important;
+    }
+
+    #flag-icon {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .flagged {
+      color: yellow;
+    }
+
+    #show-flagged {
+      position: fixed;
+      top: 50px;
+      right: 20px;
+      z-index: 1001;
+      background-color: #f5a623;
+      color: black;
+    }
+
+    #results {
+      display: none;
+      padding: 20px;
+      background: #1b2c47;
+      border-radius: 10px;
+      max-width: 900px;
+      margin: auto;
+      margin-top: 40px;
+    }
+
+    details {
+      margin-bottom: 15px;
+    }
+
+    summary {
+      font-weight: bold;
+    }
+
+    .filters {
+      margin-bottom: 15px;
+    }
+
+    .filters button {
+      margin-right: 10px;
+    }
+
+    #flag-sidebar {
+      position: fixed;
+      top: 0;
+      right: -400px;
+      width: 300px;
+      height: 100vh;
+      background: #1b2c47;
+      color: white;
+      padding: 20px;
+      overflow-y: auto;
+      transition: right 0.3s ease;
+      z-index: 1000;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.6);
+    }
+
+    #flag-sidebar.show {
+      right: 0;
+    }
+
+    #flag-sidebar h3 {
+      margin-top: 0;
+    }
+
+    .flagged-question {
+      margin-bottom: 20px;
+      cursor: pointer;
+      border-bottom: 1px solid #444;
+      padding-bottom: 10px;
+    }
+
+    .flagged-question:hover {
+      background-color: #244063;
+    }
+  </style>
+</head>
+<body>
+
+  <main>
+    <div id="flag-icon">⚑</div>
+    <h2 id="area-title"></h2>
+    <p id="question-text"></p>
+    <ul id="options"></ul>
+    <p id="feedback"></p>
+    <nav>
+      <button class="btn" id="prev">Anterior</button>
+      <button class="btn" id="next">Próxima</button>
+    </nav>
+  </main>
+
+
+  <div id="flag-sidebar">
+    <h3>Questões Marcadas</h3>
+    <button class="btn" onclick="toggleFlagSidebar()">Fechar</button>
+    <div id="flagged-list"></div>
+  </div>
+
+  <div id="results">
+    <h2>Resultado</h2>
+    <p id="score"></p>
+    <div class="filters">
+      <button class="btn" onclick="showFilteredQuestions('all')">Todas as Perguntas</button>
+      <button class="btn" onclick="showFilteredQuestions('correct')">Corretas</button>
+      <button class="btn" onclick="showFilteredQuestions('incorrect')">Incorretas</button>
+    </div>
+    <div id="explanations"></div>
+  </div>
+  <script>
+    let idx = 0;
+    let score = 0;
+    const flagged = new Set();
+
+    // Todas as questões disponíveis
+    const allQuestions = [
+        
+   {
+    "numero": 1,
+    "area": "Clínica Médica",
+    "question": "Analise o gráfico abaixo, considerando que a linha horizontal de base corresponda ao tempo de ação e a linha vertical do gráfico corresponda à concentração sérica. No caso de a função renal estar normal, pode-se afirmar que os antibióticos correspondentes ao representado pela linha contínua e ao representado pela linha pontilhada podem ser, respectivamente:",
+    "options": {
+      "A": "Amoxicilina e cefuroxima.",
+      "B": "Ciprofloxacino e meropenem.",
+      "C": "Oxacilina e amicacina.",
+      "D": "Ampicilina e ciprofloxacino."
+    },
+    "correct": "C",
+    "explanation": "Oxacilina (linha contínua) tem perfil tempo-dependente, enquanto amicacina (linha pontilhada) é concentração-dependente. O gráfico demonstra esse contraste."
+  },
+  {
+    "numero": 2,
+    "area": "Clínica Médica",
+    "question": "Qual das seguintes situações clínicas apresenta um quadro mais provável de doença reumatológica em um paciente com artralgia?",
+    "options": {
+      "A": "Paciente de 25 anos de idade, cefaleia recorrente, com resultado de Fator Antinuclear (FAN) 1:160, padrão citoplasmático fibrilar linear em exame de rotina.",
+      "B": "Paciente de 60 anos de idade, com histórico de fadiga, com resultado de FAN 1:640, padrão nuclear pontilhado grosso.",
+      "C": "Paciente de 30 anos de idade, em tratamento para acne com isotretinoína, com mialgias e resultado de FAN 1:320, padrão citoplasmático pontilhado polar.",
+      "D": "Paciente de 45 anos de idade, com histórico de infecção respiratória recente, resultado de FAN 1:160, padrão citoplasmático fibrilar filamentar."
+    },
+    "correct": "B",
+    "explanation": "A alta titulação de FAN (1:640) com padrão nuclear pontilhado grosso e sintomas sistêmicos sugere autoimunidade, comum em doenças reumatológicas como LES."
+  },
+  {
+    "numero": 3,
+    "area": "Clínica Médica",
+    "question": "Analise as assertivas abaixo:\nI. A síndrome da secreção inadequada do hormônio antidiurético é uma causa de hipernatremia.\nII. Leucócitos superiores a 100.000/µL no líquor sugerem fortemente meningite piogênica.\nIII. A hipernatremia pode cursar com rebaixamento do nível de consciência.\nQuais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas II e III.",
+      "C": "Apenas I e III.",
+      "D": "I, II e III."
+    },
+    "correct": "B",
+    "explanation": "A SIADH causa hiponatremia, não hipernatremia, tornando I incorreta. II e III são corretas: leucócitos >100.000 no líquor sugerem meningite bacteriana, e a hipernatremia pode alterar o nível de consciência."
+  },
+   {
+    "numero": 4,
+    "area": "Clínica Médica",
+    "question": "Homem, 48 anos, procura emergência com desconforto torácico. Analise o seu eletrocardiograma. Considerando as informações apresentadas, o tratamento inicial para esse paciente é:",
+    "options": {
+      "A": "Anticoagulação a pleno.",
+      "B": "Dupla antiagregação plaquetária.",
+      "C": "Angioplastia coronária.",
+      "D": "Trombólise."
+    },
+    "correct": "B",
+    "explanation": "Em casos de SCA sem supradesnivelamento do ST, a conduta inicial inclui dupla antiagregação com AAS + P2Y12."
+  },
+  {
+    "numero": 5,
+    "area": "Clínica Médica",
+    "question": "Analise a figura, na qual a imagem da esquerda representa o ambiente intracelular e a da direita representa o ambiente extracelular. Considerando que os itens “A” e “C” tenham maiores concentrações intracelulares e que o item “B” tenha maior concentração extracelular, as letras A, B e C correspondem, respectivamente, aos eletrólitos:",
+    "options": {
+      "A": "Cloro, potássio e sódio.",
+      "B": "Potássio, sódio e magnésio.",
+      "C": "Fosfato, cloro e sódio.",
+      "D": "Potássio, sódio e cloro."
+    },
+    "correct": "C",
+    "explanation": "O potássio e o fosfato são predominantes intracelulares, enquanto o sódio e o cloro predominam no meio extracelular."
+  },
+  {
+    "numero": 6,
+    "area": "Clínica Médica",
+    "question": "Em relação ao rastreio para o câncer de próstata, analise as assertivas a seguir e assinale a alternativa correta. I. Homens a partir de 45 anos, mesmo sem apresentar sintomas, devem procurar o médico para avaliação individualizada, tendo como objetivo o diagnóstico precoce do câncer de próstata. II. Homens que integram o grupo de risco (raça negra ou com parentes de primeiro grau com câncer de próstata) devem começar seus exames mais precocemente, a partir dos 40 anos. III. Após os 70 anos, somente homens com perspectiva de vida maior do que 10 anos poderão fazer essa avaliação.",
+    "options": {
+      "A": "Todas as assertivas estão corretas.",
+      "B": "Todas as assertivas estão incorretas.",
+      "C": "Apenas a assertiva II está correta.",
+      "D": "Apenas a assertiva III está correta."
+    },
+    "correct": "B",
+    "explanation": "As três assertivas estão incorretas segundo as recomendações atuais, pois não indicam claramente os critérios para rastreio e idade adequada para o exame."
+  },
+  {
+    "numero": 7,
+    "area": "Clínica Médica",
+    "question": "O escore de Wells é um modelo de predileção clínica amplamente utilizado para auxílio no diagnóstico de Trombose Venosa Profunda (TVP). Qual das alternativas abaixo apresenta um achado clínico que NÃO aumenta a suspeição de diagnóstico de TVP?",
+    "options": {
+      "A": "Edema de toda a extremidade.",
+      "B": "Presença de celulite.",
+      "C": "Veias colaterais superficiais não varicosas.",
+      "D": "Palpação dolorosa ao longo do trajeto de veias do sistema profundo."
+    },
+    "correct": "B",
+    "explanation": "Celulite é uma infecção da pele e tecidos subjacentes, não relacionada à trombose venosa profunda, portanto não aumenta a suspeição de TVP."
+  },
+  {
+    "numero": 8,
+    "area": "Clínica Médica",
+    "question": "Dor crônica difusa, subjetividade dos sintomas, preponderância em mulheres e falta de dados objetivos de imagem e de exames laboratoriais fazem com que a principal suspeita clínica seja de:",
+    "options": {
+      "A": "Artrite reumatoide.",
+      "B": "Polimialgia reumática.",
+      "C": "Fibromialgia.",
+      "D": "Depressão."
+    },
+    "correct": "C",
+    "explanation": "Fibromialgia é caracterizada por dor crônica difusa e sintomas subjetivos, afetando principalmente mulheres, sem alterações objetivas nos exames laboratoriais ou de imagem."
+  },
+  {
+    "numero": 9,
+    "area": "Clínica Médica",
+    "question": "A presença de bandas oligoclonais no líquor sugere fortemente o diagnóstico de:",
+    "options": {
+      "A": "Alzheimer.",
+      "B": "Esclerose múltipla.",
+      "C": "Linfoma de células B.",
+      "D": "Meningite viral."
+    },
+    "correct": "B",
+    "explanation": "Bandas oligoclonais no líquor são um achado característico da esclerose múltipla, indicando resposta imune intratecal."
+  },
+  {
+    "numero": 10,
+    "area": "Clínica Médica",
+    "question": "Em relação ao hipotireoidismo, analise as assertivas a seguir: I. Pode-se começar o tratamento de hipotireoidismo com a reposição de levotiroxina sódica na dose de 2 μg/kg/dia no adulto jovem e 1,5 μg/kg/dia total no idoso (sem antecedentes de cardiopatia). II. A medida do TSH sérico em pacientes jovens hipotireoideos só deve ser solicitada para avaliar a reposição hormonal após seis semanas de início do tratamento regular. III. Drogas como anticonvulsivantes, rifampicina e sertralina podem acelerar o metabolismo da levotiroxina e, neste caso, a dose precisa ser ajustada. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "C",
+    "explanation": "II e III estão corretas: a dosagem do TSH é recomendada após seis semanas do tratamento para ajuste; certos medicamentos aceleram o metabolismo da levotiroxina exigindo ajuste de dose. I está incorreta pois a dose inicial no adulto jovem costuma ser 1,6 μg/kg/dia."
+    },
+    {
+    "numero": 11,
+    "area": "Clínica Médica",
+    "question": "Sobre o diabetes melito, analise as assertivas a seguir: I. A taxa de glicação da fração A1c da hemoglobina A (HbA1c) é expressa em porcentagem e se relaciona com a média das glicemias diárias nas últimas 3 semanas. II. É recomendada a meta de HbA1c <7,0% para indivíduos com qualquer tipo de diabetes, para prevenção de complicações macrovasculares em longo prazo, desde que não incorra em hipoglicemias graves e frequentes, exceto em idosos. III. Em idosos com diabetes melito, com objetivo de evitar hipoglicemia, uma meta de HbA1c <8,0% deve ser considerada quando houver status funcional comprometido, síndrome de fragilidade, presença de comorbidades que limitem a expectativa de vida e/ou alteração da função cognitiva. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "C",
+    "explanation": "II e III estão corretas: a meta <7% é recomendada, exceto em idosos com fragilidade, para os quais uma meta <8% é mais segura; I está incorreta pois o HbA1c reflete a glicemia média das últimas 8 a 12 semanas, não 3."
+  },
+  {
+    "numero": 12,
+    "area": "Clínica Médica",
+    "question": "Em relação à retocolite ulcerativa, analise as assertivas a seguir: I. Os surtos agudos de retocolite ulcerativa podem ser controlados com derivados do ácido 5-aminossalicílico. II. Os que não responderem ao tratamento com derivados do ácido 5-aminossalicílico devem receber corticosteroides para indução da remissão da retocolite ulcerativa. III. Pacientes com retocolite ulcerativa grave sem resposta ao uso de corticosteroide são candidatos ao uso de ciclosporina. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "D",
+    "explanation": "Todas as alternativas estão corretas: o ácido 5-ASA é primeira linha para surtos; corticosteroides são usados em casos refratários; ciclosporina é indicada para casos graves sem resposta."
+  },
+  {
+    "numero": 13,
+    "area": "Clínica Médica",
+    "question": "A Síndrome da Resposta Inflamatória Sistêmica (SIRS) é uma resposta complexa do organismo a uma série de insultos. Em relação aos critérios diagnósticos e características fisiopatológicas de SIRS, assinale a alternativa correta.",
+    "options": {
+      "A": "A presença de pelo menos um critério da SIRS é suficiente para diagnóstico de sepse, independentemente da causa subjacente.",
+      "B": "O diagnóstico da SIRS pode ser confirmado pela elevação de biomarcadores específicos, como a troponina e a creatinina.",
+      "C": "A SIRS é caracterizada por uma resposta inflamatória que pode ocorrer na ausência de infecção, como em casos de pancreatite aguda ou queimaduras extensas.",
+      "D": "SIRS resulta em hipotensão arterial que não responde à reposição volêmica."
+    },
+    "correct": "C",
+    "explanation": "SIRS pode ocorrer em resposta a insultos não infecciosos, como pancreatite ou queimaduras, caracterizando uma inflamação sistêmica generalizada."
+  },
+  {
+    "numero": 14,
+    "area": "Clínica Médica",
+    "question": "Em relação à malária, analise as assertivas a seguir: I. O diagnóstico confirmatório da malária baseia-se no encontro de parasitos no sangue. O método mais utilizado é a microscopia de gota espessa de sangue, colhida por punção digital e corada pelo método de Walker. II. A sorologia para pesquisa de anticorpos antiplasmodium não deve ser realizada no caso de suspeita de malária. Seu resultado é relacionado à exposição prévia e é restrito apenas a estudos científicos. Sua solicitação no contexto clínico leva à demora no diagnóstico e maior risco de complicações. III. Pessoas com deficiência suspeita ou confirmada de glicose-6-fosfato-desidrogenase (G6PD), atividade abaixo de 30%, não deverão fazer uso de primaquina. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "D",
+    "explanation": "Todas as assertivas estão corretas: o diagnóstico baseia-se na microscopia da gota espessa; sorologia não é útil para diagnóstico agudo; e a primaquina é contraindicada em deficiência grave de G6PD."
+  },
+  {
+    "numero": 15,
+    "area": "Clínica Médica",
+    "question": "Em relação à osteoporose, analise as assertivas a seguir: I. O raloxifeno está aprovado para prevenção e tratamento da osteoporose da coluna vertebral em mulheres na pós-menopausa, sem sintomas climatéricos, promovendo redução significante de fraturas vertebrais, sem impacto na redução de outras fraturas. II. Pacientes com T-score igual ou menor do que -2,5 DP na coluna lombar, colo femoral, fêmur total ou rádio 33% devem ser considerados para terapia farmacológica. III. O tratamento com altas doses de vitamina D (dose superior a 50.000 UI por semana) é recomendado para todas as mulheres em pós-menopausa, independentemente do nível sérico de vitamina D e do histórico de fraturas. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "A",
+    "explanation": "I e II são corretas: raloxifeno reduz fraturas vertebrais e T-score ≤ -2,5 indica terapia; III é incorreta, pois altas doses de vitamina D não são recomendadas indiscriminadamente."
+  },
+  {
+    "numero": 16,
+    "area": "Clínica Médica",
+    "question": "Em relação à doença pulmonar obstrutiva crônica, analise as assertivas a seguir: I. O diagnóstico funcional de obstrução ao fluxo aéreo se baseia na relação entre volume expiratório forçado no primeiro segundo e capacidade vital forçada (VEF1 e CVF, respectivamente), considerando-se anormal um valor inferior a 80%. II. A dosagem do nível sérico de alfa-1-antitripsina deve ser considerada para casos de enfisema pulmonar panlobular com predomínio basal de início precoce (antes da 4ª década), especialmente em não fumantes. III. A teofilina é eficaz na redução de dispneia em estudos clínicos randomizados, mas o risco de toxicidade e a necessidade de monitorização do nível sérico limitam sua utilidade clínica. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "C",
+    "explanation": "II e III são corretas: alfa-1-antitripsina é triada em enfisema precoce; teofilina melhora sintomas, mas tem limitações pela toxicidade. I está incorreta porque o valor limite para obstrução é FEV1/CVF < 0,7, não 80%."
+  },
+  {
+    "numero": 17,
+    "area": "Clínica Médica",
+    "question": "Um dos desafios no cuidado ao paciente idoso é reconhecer as particularidades que essa faixa etária apresenta em relação a outras. Qual das alternativas a seguir apresenta uma particularidade comum nos pacientes idosos e que requer atenção especial?",
+    "options": {
+      "A": "O metabolismo dos medicamentos é mais rápido, exigindo doses mais altas.",
+      "B": "A sensibilidade à dor diminui, tornando desnecessário o uso de analgésicos.",
+      "C": "A polifarmácia, devido ao risco aumentado de interações medicamentosas.",
+      "D": "A capacidade cognitiva melhora, facilitando a adesão ao tratamento."
+    },
+    "correct": "C",
+    "explanation": "Polifarmácia é frequente em idosos, aumentando o risco de interações e efeitos adversos, e requer atenção especial."
+  },
+  {
+    "numero": 18,
+    "area": "Clínica Médica",
+    "question": "O angioedema é uma condição potencialmente grave, caracterizada pelo edema súbito de tecidos subcutâneos e submucosos. Em relação à fisiopatologia, diagnóstico e manejo do angioedema, assinale a alternativa correta.",
+    "options": {
+      "A": "O angioedema hereditário é causado por uma deficiência de C3, resultando em uma produção excessiva de bradicinina.",
+      "B": "Os Inibidores da Enzima Conversora de Angiotensina (IECA) são a causa mais comum de angioedema adquirido, com boa resposta a anti-histamínicos.",
+      "C": "O angioedema mediado por bradicinina responde bem ao tratamento com anti-histamínicos e corticosteroides.",
+      "D": "A dosagem de C1-inibidor é fundamental para o diagnóstico de angioedema hereditário."
+    },
+    "correct": "D",
+    "explanation": "O angioedema hereditário está associado a deficiência ou disfunção do C1-inibidor, e sua dosagem é essencial para diagnóstico."
+  },
+  {
+    "numero": 19,
+    "area": "Clínica Médica",
+    "question": "Homem, 21 anos, com quadro de alucinações auditivas e delírios persecutórios é levado à emergência. Como estava desconfiado e com comportamento desafiador, optou-se por administrar 1 ampola de haloperidol IM para buscar acalmá-lo. Em 30 minutos, necessitou mais uma dose. Duas horas após ter recebido a medicação, passou a ter sensação de desconforto, angústia e desassossego, mexendo o tronco, mantendo pés e braços agitados, e ficando mais ansioso e irritado. Referia não conseguir ficar parado, pedindo por socorro. Considerando o caso apresentado, qual é a possível hipótese diagnóstica e a conduta a ser tomada, respectivamente?",
+    "options": {
+      "A": "Crise de pânico -- administração de benzodiazepínico.",
+      "B": "Acatisia -- administração de benzodiazepínico/propranolol.",
+      "C": "Agitação psicótica -- administração de antipsicótico.",
+      "D": "Delirium hiperativo -- administração de antipsicótico."
+    },
+    "correct": "B",
+    "explanation": "Acatisia é um efeito adverso dos antipsicóticos, caracterizado por inquietação motora e angústia, sendo tratada com benzodiazepínicos ou propranolol."
+  },
+  {
+    "numero": 20,
+    "area": "Clínica Médica",
+    "question": "Mulher, 78 anos, estava em tratamento para hipertensão arterial, diabetes tipo 2, dislipidemia e incontinência urinária. Realizou cirurgia de revascularização miocárdica. No terceiro dia de pós-operatório, a paciente achava que estava em sua casa, referindo aguardar seu marido chegar do trabalho, não demonstrando ter ciência de que ele já era falecido. Em alguns momentos, parecia mais calma e lúcida, mas alternava esse comportamento com outros de desorganização e discurso incoerente. Durante o dia, tendia a ficar mais sonolenta. Na avaliação, a paciente não colaborava com o exame físico. Mostrava-se perplexa, assustando-se com sons do ambiente, via cachorros caminhando no quarto. Distraía-se com facilidade, não focando sua atenção nas perguntas feitas pelo médico. Durante a noite, ficou agitada, desorganizada, agressiva com a equipe, com tentativas de arrancar os cateteres. Paciente foi diagnosticada com delirium. Em relação ao quadro diagnóstico apresentado, assinale a alternativa INCORRETA.",
+    "options": {
+      "A": "O processo de identificação e tratamento de possíveis causas clínicas associadas deve ser rápido.",
+      "B": "Estratégias como reorientação, otimização do sono, exercícios e mobilização do paciente, hidratação oral, auxílio visual e auditivo são medidas preventivas importantes, demonstrando redução da prevalência dessa condição.",
+      "C": "Deve-se evitar o uso de benzodiazepínico, sendo reservado a casos específicos, como de delirium secundário a abstinência de álcool ou de sedativos/hipnóticos.",
+      "D": "O uso de antipsicóticos está indicado tanto para prevenção como para o tratamento do delirium hiperativo."
+    },
+    "correct": "D",
+    "explanation": "O uso de antipsicóticos não é indicado para prevenção do delirium, sendo reservado para controle de sintomas severos e quando outras medidas não forem eficazes."
+    },
+    {
+  "numero": 21,
+  "area": "Cirurgia Geral",
+  "question": "Sobre a classificação de Mascarenhas da acalásia do esôfago, assinale a alternativa correta.",
+  "options": {
+    "A": "Tem subclassificação em seis subtipos e sua variação é conforme a pressão de fechamento do esfíncter esofágico inferior.",
+    "B": "Independentemente da classificação, o tratamento cirúrgico é a primeira opção de escolha.",
+    "C": "A classe II é caracterizada por dilatação entre 4 e 7 centímetros.",
+    "D": "O diagnóstico etiológico mais comum no Brasil é acalásia secundária à doença de Chagas."
+  },
+  "correct": "D",
+  "explanation": "No Brasil, a acalásia secundária à doença de Chagas é a forma mais comum, conforme evidenciado na literatura de cirurgia geral."
+  },
+  {
+  "numero": 22,
+  "area": "Cirurgia Geral",
+  "question": "Em relação aos critérios de Ranson para pancreatite aguda biliar, assinale a alternativa INCORRETA.",
+  "options": {
+    "A": "Após 48 horas de internação do paciente, os critérios são diferentes dos avaliados na chegada do quadro clínico/laboratorial.",
+    "B": "Durante avaliação na chegada, critérios clínicos/laboratoriais como idade, leucograma e glicemia são avaliados.",
+    "C": "Fatores como PaO2, Desidrogenase Láctica (LDH) e Transaminase Pirúvica (TGP) são avaliados após 48 horas.",
+    "D": "Não incluem avaliação por exame de imagem."
+  },
+  "correct": "D",
+  "explanation": "Os critérios de Ranson não envolvem avaliação por exames de imagem, sendo baseados apenas em dados clínicos e laboratoriais."
+  },
+  {
+  "numero": 23,
+  "area": "Cirurgia Geral",
+  "question": "NÃO é um fator de risco para câncer gástrico:",
+  "options": {
+    "A": "Cirurgia gástrica prévia.",
+    "B": "Tipo sanguíneo A.",
+    "C": "Diabetes melito.",
+    "D": "Tabagismo."
+  },
+  "correct": "C",
+  "explanation": "Diabetes melito não é considerado um fator de risco para câncer gástrico, ao contrário dos demais listados."
+  },
+  {
+  "numero": 24,
+  "area": "Cirurgia Geral",
+  "question": "Conforme a localização de uma úlcera gástrica, podemos classificá-la e correlacioná-la com a produção de cloro. Sobre a classificação da doença ulcerosa péptica, assinale a alternativa correta.",
+  "options": {
+    "A": "Tipo I: úlcera de qualquer localização associada ao uso de AINE.",
+    "B": "Tipo III: úlcera de localização pré-pilórica e está relacionada à hipercloridria.",
+    "C": "Tipo IV: úlcera próxima à cárdia, e está associada à hipercloridria.",
+    "D": "Tipo V: úlcera de localização de pequena curvatura e está associada ao uso de AINE."
+  },
+  "correct": "B",
+  "explanation": "Úlcera tipo III é pré-pilórica e associada à hipercloridria, conforme a classificação clássica das úlceras gástricas."
+  },
+  {
+  "numero": 25,
+  "area": "Cirurgia Geral",
+  "question": "Em relação ao divertículo de Zenker, assinale a alternativa correta.",
+  "options": {
+    "A": "É encontrado no esôfago distal.",
+    "B": "É o segundo divertículo mais comum na topografia esofágica.",
+    "C": "Divertículos pequenos, principalmente menores que 1-2 cm, costumam ser assintomáticos.",
+    "D": "A ressecção do divertículo é opção cirúrgica adotada em casos assintomáticos."
+  },
+  "correct": "C",
+  "explanation": "Divertículos de Zenker pequenos geralmente são assintomáticos e podem não necessitar de tratamento imediato."
+  },
+  {
+  "numero": 26,
+  "area": "Cirurgia Geral",
+  "question": "NÃO são fatores de risco de infecção em mordedura por animal:",
+  "options": {
+    "A": "Paciente com idade menor do que quatorze anos, hiperesplenismo e hipocolesterolemia.",
+    "B": "Ocorrência em locais como mãos, pés e punhos.",
+    "C": "Paciente com idade acima de cinquenta anos, insuficiência vascular periférica e alcoolismo crônico.",
+    "D": "Doenças metabólicas e asplenismo."
+  },
+  "correct": "A",
+  "explanation": "Hipocolesterolemia não é um fator de risco para infecção em mordeduras; os demais listados aumentam o risco."
+  },
+  {
+  "numero": 27,
+  "area": "Cirurgia Geral",
+  "question": "Sobre o diagnóstico de abdome agudo, assinale a alternativa INCORRETA.",
+  "options": {
+    "A": "É classificado em cinco subtipos: inflamatório, hemorrágico, isquêmico, obstrutivo e perfurativo.",
+    "B": "Na prática clínica, se não diagnosticado em tempo hábil, evolui para abdome agudo perfurativo, quadros iniciais de abdome agudo inflamatório e obstrutivo.",
+    "C": "Entre as causas cirúrgicas de abdome agudo, está a úlcera péptica perfurada em paciente instável hemodinamicamente, hiponatremia, uremia e apendicite aguda.",
+    "D": "O abdome agudo obstrutivo por causa benigna tem como etiologia mais comum bridas intestinais, seguida por hérnias inguinais ou de parede abdominal."
+  },
+  "correct": "B",
+  "explanation": "A evolução para abdome perfurativo ocorre a partir de abdome inflamatório ou perfurativo, não do obstrutivo, tornando a alternativa B incorreta."
+  },
+  {
+  "numero": 28,
+  "area": "Cirurgia Geral",
+  "question": "Assinale a alternativa correta em relação aos sinais apresentados durante o exame físico abdominal.",
+  "options": {
+    "A": "Sinal de Murphy: dor à inspiração profunda durante a palpação abdominal, localizado em hipocôndrio esquerdo.",
+    "B": "Sinal de Courvoisier: vesícula biliar palpável em paciente com icterícia.",
+    "C": "Sinal de Cullen: equimose em região de abdome superior ao diagnóstico de úlcera péptica perfurada.",
+    "D": "Sinal de Ten Horn: dor à tração suave de bolsa testicular esquerda em suspeita de urolitíase."
+  },
+  "correct": "B",
+  "explanation": "Sinal de Courvoisier indica vesícula biliar palpável associada à icterícia, geralmente em obstrução biliar."
+  },
+  {
+  "numero": 29,
+  "area": "Cirurgia Geral",
+  "question": "Em relação à doença ulcerosa péptica, assinale a alternativa correta com base na classificação de Forrest.",
+  "options": {
+    "A": "IIb: aqueles que têm coágulo aderente à ulceração e possuem risco intermediário de novo sangramento.",
+    "B": "Ia: aqueles que têm lesão ulcerosa limpa, com baixa possibilidade de sangramento.",
+    "C": "IIc: aqueles que apresentam vaso visível, porém não sangrante e têm alto risco de sangramento.",
+    "D": "III: aqueles que têm hemorragia ativa e apresentam alto risco de novo episódio de sangramento no futuro."
+  },
+  "correct": "A",
+  "explanation": "Classificação de Forrest IIb refere-se a coágulo aderente com risco intermediário de sangramento."
+  },
+  {
+  "numero": 30,
+  "area": "Cirurgia Geral",
+  "question": "Sobre a hemorragia digestiva baixa, assinale a alternativa INCORRETA.",
+  "options": {
+    "A": "É um diagnóstico menos frequente do que a hemorragia digestiva alta.",
+    "B": "A causa mais comum de hemorragia digestiva baixa colônica é a diverticulite aguda.",
+    "C": "A causa mais comum de sangramento de intestino delgado é a doença de Crohn.",
+    "D": "Colite, ou proctite secundária à radioterapia, constitui uma das causas mais incomuns de sangramento baixo, correspondendo a aproximadamente um a três por cento."
+  },
+  "correct": "B",
+  "explanation": "A diverticulite aguda não é a causa mais comum de hemorragia digestiva baixa; a diverticulose é a causa mais comum."
+  },
+  {
+  "numero": 31,
+  "area": "Cirurgia Geral",
+  "question": "Em relação à resposta hormonal ao estresse cirúrgico, é INCORRETO afirmar que:",
+  "options": {
+    "A": "A drenagem de cortisol está aumentada.",
+    "B": "A drenagem de insulina está aumentada.",
+    "C": "A drenagem de aldosterona está aumentada.",
+    "D": "A drenagem de glucagon está aumentada."
+  },
+  "correct": "B",
+  "explanation": "Durante o estresse cirúrgico, a insulina geralmente está diminuída devido à resistência periférica, enquanto outros hormônios aumentam."
+  },
+  {
+  "numero": 32,
+  "area": "Cirurgia Geral",
+  "question": "Considera-se um fator de risco associado à ventilação mecânica pós-operatória:",
+  "options": {
+    "A": "Nível de albumina <2,2 mg/dl.",
+    "B": "Idade maior ou igual a 80 anos.",
+    "C": "Insuficiência renal aguda.",
+    "D": "Ventilação mecânica por uma semana."
+  },
+  "correct": "B",
+  "explanation": "Idade avançada (≥80 anos) é fator de risco importante para complicações respiratórias pós-operatórias, incluindo necessidade de ventilação mecânica."
+  },
+  {
+  "numero": 33,
+  "area": "Cirurgia Geral",
+  "question": "São antibióticos que exigem ajuste de dose por insuficiência hepática ou renal, EXCETO:",
+  "options": {
+    "A": "Meropenem.",
+    "B": "Metronidazol.",
+    "C": "Vancomicina.",
+    "D": "Azitromicina."
+  },
+  "correct": "D",
+  "explanation": "Azitromicina não exige ajuste em insuficiência hepática ou renal na maioria dos casos, diferente dos demais."
+},
+  {
+  "numero": 34,
+  "area": "Cirurgia Geral",
+  "question": "O retroperitônio é dividido em três zonas. Assinale a alternativa correta sobre a divisão do retroperitônio observada na cirurgia laparotômica.",
+  "options": {
+    "A": "A zona um compreende as estruturas vasculares centrais.",
+    "B": "A zona dois é a que compreende a vascularização pélvica.",
+    "C": "A zona dois compreende o arco duodenal e a cabeça pancreática.",
+    "D": "A zona três é a que compreende a loja renal bilateral."
+  },
+  "correct": "A",
+  "explanation": "A zona um é a região central do retroperitônio com as grandes estruturas vasculares, como a aorta e veia cava."
+  },
+  {
+  "numero": 35,
+  "area": "Cirurgia Geral",
+  "question": "São fatores perioperatórios que influenciam a rejeição de tela inabsorvível durante a reconstrução de uma parede abdominal em cirurgias de hérnias complexas, EXCETO:",
+  "options": {
+    "A": "Utilização de fios absorvíveis, como de polipropileno, para fixação da tela.",
+    "B": "Interrupção do tabagismo.",
+    "C": "Antissépticos utilizados para higiene de sítio cirúrgico.",
+    "D": "Evitar contato da tela com a pele."
+  },
+  "correct": "A",
+  "explanation": "Polipropileno é um fio não absorvível, portanto, a alternativa A está incorreta quanto à descrição e influência na rejeição."
+  },
+  {
+  "numero": 36,
+  "area": "Cirurgia Geral",
+  "question": "A classificação de Spigelman é utilizada para melhor avaliação da adenomatose duodenal. Sobre esse assunto, assinale a alternativa correta.",
+  "options": {
+    "A": "A classificação tem cinco parâmetros, sendo um deles o número de adenomas encontrados.",
+    "B": "O tamanho do pólipo é medido em milímetros, sendo um pólipo maior que 10 mm classificado como três pontos.",
+    "C": "A classificação pode variar entre 0 e 25 pontos.",
+    "D": "A histologia do adenoma não é considerada, diferentemente do avaliado no cólon, por exemplo."
+  },
+  "correct": "A",
+  "explanation": "A classificação Spigelman usa cinco parâmetros, incluindo número, tamanho, histologia, entre outros."
+  },
+  {
+  "numero": 37,
+  "area": "Cirurgia Geral",
+  "question": "Sobre o sistema TNM de classificação dos tumores malignos encontrados no intestino delgado, é correto afirmar que:",
+  "options": {
+    "A": "Uma lesão classificada como T3 tem tamanho entre cinco e dez centímetros.",
+    "B": "Uma lesão considerada N0 tem linfonodos regionais positivos.",
+    "C": "Uma lesão classificada como T4 tem menos de dez centímetros.",
+    "D": "Uma lesão classificada como N1 tem linfonodos positivos a distância."
+  },
+  "correct": "C",
+  "explanation": "T4 indica tumor que invade estruturas adjacentes, geralmente menor que 10 cm; N0 significa ausência de linfonodos positivos."
+  },
+  {
+  "numero": 38,
+  "area": "Cirurgia Geral",
+  "question": "Assinale a alternativa correta sobre a anatomia vascular do cólon.",
+  "options": {
+    "A": "O cólon sigmoide é vascularizado pela artéria mesentérica superior.",
+    "B": "O cólon ascendente é vascularizado pela artéria mesentérica superior.",
+    "C": "O cólon direito é vascularizado pela artéria cólica direita, que existe em todos os pacientes.",
+    "D": "O cólon esquerdo é vascularizado pela artéria cólica esquerda, ramo da artéria mesentérica superior."
+  },
+  "correct": "B",
+  "explanation": "O cólon ascendente é irrigado pela artéria mesentérica superior, por meio da artéria cólica direita."
+  },
+  {
+  "numero": 39,
+  "area": "Cirurgia Geral",
+  "question": "O cirurgião deve ser muito criterioso na indicação de procedimento cirúrgico para a doença de Crohn. São motivos de indicação de cirurgia, EXCETO:",
+  "options": {
+    "A": "Fístula.",
+    "B": "Obstrução intestinal.",
+    "C": "Megacólon tóxico.",
+    "D": "Hemorragia controlada com tratamento conservador."
+  },
+  "correct": "D",
+  "explanation": "Hemorragia controlada clinicamente não é indicação cirúrgica imediata para doença de Crohn."
+  },
+  {
+  "numero": 40,
+  "area": "Cirurgia Geral",
+  "question": "Sobre os diagnósticos diferenciais na elucidação diagnóstica das massas ovarianas, é INCORRETO afirmar que:",
+  "options": {
+    "A": "Entre as patologias malignas, encontra-se carcinoma invasivo de células claras, carcinoma invasivo endometrial, entre outros.",
+    "B": "Entre as patologias benignas do ovário, encontra-se o corpo lúteo hemorrágico e o endometrioma, entre outros.",
+    "C": "Entre as metástases, podemos encontrar do câncer de cólon, de estômago, linfoma, entre outros.",
+    "D": "Quando realizado o diagnóstico de gravidez ectópica, o tratamento optado sempre será o cirúrgico."
+  },
+  "correct": "D",
+  "explanation": "O tratamento da gravidez ectópica pode ser clínico ou cirúrgico, dependendo do caso, não sendo sempre cirúrgico."
+  },
+  {
+  "numero": 41,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "São causas incomuns (<12%) de sangramento pós-menopausa: I. Atrofia endometrial. II. Pólipos endometriais. III. Câncer de endométrio. Quais estão corretas?",
+  "options": {
+    "A": "Apenas I.",
+    "B": "Apenas II.",
+    "C": "Apenas II e III.",
+    "D": "I, II e III."
+  },
+  "correct": "C",
+  "explanation": "Embora a atrofia endometrial seja a causa mais comum, pólipos e câncer de endométrio também são causas relevantes e, juntos, representam as causas incomuns de sangramento pós-menopausa."
+  },
+  {
+  "numero": 42,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Deve-se investigar a amenorreia primária nos seguintes casos: I. Em meninas com mais de 15 anos de idade, com caráteres sexuais secundários presentes. II. Na ausência de menarca após 5 anos do início da telarca. III. Em meninas com 13 anos de idade sem caracteres secundários. Quais estão corretos?",
+  "options": {
+    "A": "Apenas I.",
+    "B": "Apenas II.",
+    "C": "Apenas I e II.",
+    "D": "I, II e III."
+  },
+  "correct": "D",
+  "explanation": "A investigação é indicada em todas as situações descritas, pois indicam possíveis atrasos no desenvolvimento puberal que precisam ser avaliados."
+  },
+  {
+  "numero": 43,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Gestante, 22 semanas, vem para consulta na unidade de Atenção Básica. Ela não apresenta queixas e o exame físico não apresenta anormalidades. A próxima consulta do pré-natal deve ser marcada em:",
+  "options": {
+    "A": "7 dias.",
+    "B": "15 dias.",
+    "C": "20 dias.",
+    "D": "30 dias."
+  },
+  "correct": "C",
+  "explanation": "No segundo trimestre de gestação sem complicações, a conduta padrão é agendar consultas mensais, aproximando-se de 30 dias entre elas."
+  },
+  {
+  "numero": 44,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Nulípara de 25 anos parou de usar anticoncepcional há 6 meses e ainda não conseguiu engravidar. Apresenta ciclos menstruais a cada 26 e 30 dias, nega doenças sexualmente transmissíveis, usa maconha e consome 5 xícaras de café por dia. O médico disse que deveria esperar 1 ano para investigação da infertilidade e que poderia continuar seu estilo de vida. A conduta do médico está:",
+  "options": {
+    "A": "Correta em todos os aspectos.",
+    "B": "Parcialmente correta, pois deveria recomendar redução do peso e terapia cognitiva.",
+    "C": "Parcialmente correta, pois deveria aconselhar cessar maconha e reduzir café.",
+    "D": "Incorreta, deveria encaminhar para investigação após 6 meses."
+  },
+  "correct": "D",
+  "explanation": "Após 6 meses de tentativas sem sucesso em mulheres com menos de 35 anos, é recomendada investigação da infertilidade, principalmente diante de fatores de risco modificáveis."  
+  },
+  {
+  "numero": 45,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "A posição da JEC (Junção Escamocolunar), em relação ao eixo longitudinal do colo do útero, depende da idade e do status hormonal da mulher. Um colo no qual a JEC se encontra mais internalizada no canal cervical é típico de uma mulher com:",
+  "options": {
+    "A": "12 anos (puberdade).",
+    "B": "21 anos (menacme, nulípara).",
+    "C": "21 anos (menacme, multípara).",
+    "D": "50 anos ou mais (menopausa)."
+  },
+  "correct": "D",
+  "explanation": "Na menopausa, ocorre regressão do epitélio e a JEC se desloca para dentro do canal cervical, ficando mais internalizada."
+  },
+  {
+  "numero": 46,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Mulher, 23 anos, apresenta pápula única rosada, não pruriginosa, com depressão central na vulva. Diagnóstico mais provável é:",
+  "options": {
+    "A": "Molusco contagioso.",
+    "B": "Pediculose.",
+    "C": "Condiloma.",
+    "D": "Cancro duro."
+  },
+  "correct": "A",
+  "explanation": "Molusco contagioso caracteriza-se por pápulas com depressão central (umbigo), geralmente assintomáticas."
+  },
+  {
+  "numero": 47,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Após o desprendimento do feto, a ligadura do cordão deve ser feita:",
+  "options": {
+    "A": "Realizar clampeamento cerca de 1 cm do abdome fetal usando duas pinças.",
+    "B": "Utilizar apenas uma pinça e seccionar a jusante do feto.",
+    "C": "Utilizar apenas uma pinça e seccionar a montante do feto.",
+    "D": "Postergar clampeamento por 30 a 60 segundos em recém-nascidos vigorosos."
+  },
+  "correct": "D",
+  "explanation": "Clampeamento tardio (30-60s) é recomendado para recém-nascidos vigorosos, promovendo melhor transfusão placentária."
+  },
+  {
+  "numero": 48,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Estudo em 500 casos investigou se a endometriose é doença progressiva pela correlação entre idade e estadiamento. Teste ANOVA p=0.9 e Spearman r=-0,023. Qual a conclusão?",
+  "options": {
+    "A": "Confirma que endometriose é progressiva.",
+    "B": "Estadiamento reduz com aumento da idade.",
+    "C": "Correlação positiva confirmada em 90%.",
+    "D": "Não foi possível demonstrar correlação positiva entre idade e estadiamento."
+  },
+  "correct": "D",
+  "explanation": "P alto (0,9) e correlação praticamente nula indicam ausência de relação entre idade e gravidade da endometriose."
+  },
+  {
+  "numero": 49,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Paciente de 45 anos pós-histerectomia recebeu quetamina, cetorolaco, ibuprofeno e morfina. Após, apresentou alucinações. Conduta correta:",
+  "options": {
+    "A": "Apenas suspender ou reduzir quetamina.",
+    "B": "Apenas escolher um anti-inflamatório.",
+    "C": "Suspender quetamina e acrescentar gabapentina.",
+    "D": "Suspender quetamina, escolher um anti-inflamatório e acrescentar gabapentina."
+  },
+  "correct": "D",
+  "explanation": "Quetamina pode causar alucinações; associar anti-inflamatórios pode ser redundante; gabapentina ajuda no controle da dor e diminui opioides."
+  },
+  {
+  "numero": 50,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Menina de 12 anos, sem atividade sexual, deve tomar vacina HPV conforme Programa Nacional de Imunização:",
+  "options": {
+    "A": "Uma dose após resultado negativo para HPV.",
+    "B": "Três doses entre 9 e 14 anos, uma a cada ano.",
+    "C": "Duas doses, no dia da consulta e após 6 meses.",
+    "D": "Não indicada, pois já passou da idade."
+  },
+  "correct": "B",
+  "explanation": "O esquema recomendado para meninas entre 9-14 anos é de 2 doses com intervalo mínimo de 6 meses, mas em alguns casos três doses são indicadas; protocolo atualizado reforça a vacinação precoce."
+  },
+  {
+  "numero": 51,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Gráfico de níveis de hCG após identificação de saco gestacional intrauterino sugere:",
+  "options": {
+    "A": "Aborto em curso.",
+    "B": "Aborto incompleto.",
+    "C": "Aborto completo.",
+    "D": "Gravidez ectópica."
+  },
+  "correct": "C",
+  "explanation": "Níveis decrescentes de hCG após saco gestacional indicam aborto completo."
+  },
+  {
+  "numero": 52,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Critérios diagnósticos para pré-eclâmpsia incluem pressão ≥140/90 mmHg após 20 semanas e:",
+  "options": {
+    "A": "Proteinúria >300mg/24h.",
+    "B": "Creatinina sérica >1,1 mg/dL.",
+    "C": "Transaminases elevadas 2x.",
+    "D": "Todas as anteriores."
+  },
+  "correct": "D",
+  "explanation": "Todos os critérios (proteinúria, disfunção renal e hepática) são sinais compatíveis com pré-eclâmpsia."
+  },
+  {
+  "numero": 53,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Indicação de cerclagem cervical, EXCETO:",
+  "options": {
+    "A": "Após perda fetal com insuficiência cervical e avaliação transvaginal entre 16-24 semanas.",
+    "B": "Até 24 semanas, dilatação <4 cm e herniação das membranas, sem contração ou infecção.",
+    "C": "Técnica transabdominal indicada para prolapso do saco amniótico.",
+    "D": "Histórico de perdas gestacionais, cerclagem entre 12-14 semanas após USG normal."
+  },
+  "correct": "C",
+  "explanation": "A cerclagem transabdominal não é indicada para prolapso do saco amniótico, sendo esta contraindicação."
+  },
+  {
+  "numero": 54,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Modo correto de usar cinto de segurança na gestação para evitar traumas:",
+  "options": {
+    "A": "Opção A.",
+    "B": "Opção B.",
+    "C": "Opção C.",
+    "D": "Opção D."
+  },
+  "correct": "B",
+  "explanation": "O cinto deve ser colocado com a faixa abdominal abaixo da barriga, apoiada nos quadris, para proteção materno-fetal."
+  },
+  {
+  "numero": 55,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Suplementação de ácido fólico previne defeitos do tubo neural que ocorrem entre:",
+  "options": {
+    "A": "14 a 21 dias pós-concepção.",
+    "B": "22 a 28 dias pós-concepção.",
+    "C": "28 a 35 dias pós-concepção.",
+    "D": "35 a 42 dias pós-concepção."
+  },
+  "correct": "B",
+  "explanation": "O fechamento do tubo neural ocorre entre o 22º e 28º dia pós-concepção, justificando a necessidade da suplementação nesse período."
+  },
+  {
+  "numero": 56,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Paciente, 36 anos, relata fluxo vaginal abundante e irritação após sexo. Cintilografia revelou infecção por Candida spp. Conduta mais apropriada:",
+  "options": {
+    "A": "Uso tópico de antifúngicos por 7 dias.",
+    "B": "Uso oral de fluconazol único dose.",
+    "C": "Tratar parceiro sexual simultaneamente.",
+    "D": "Investigar imunodeficiência."
+  },
+  "correct": "A",
+  "explanation": "Tratamento tópico por 7 dias é o padrão inicial para candidíase vaginal, especialmente em casos sem complicações."
+  },
+  {
+  "numero": 57,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Mulher com suspeita de câncer de colo uterino tem resultado citológico ASC-US. Próximo passo:",
+  "options": {
+    "A": "Repetir citologia em 6 meses.",
+    "B": "Colposcopia imediata.",
+    "C": "Teste HPV de alto risco.",
+    "D": "Biopsia cervical."
+  },
+  "correct": "C",
+  "explanation": "Teste HPV de alto risco é recomendado para orientar conduta em caso de ASC-US."
+  },
+  {
+  "numero": 58,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Gravidez ectópica mais comum em:",
+  "options": {
+    "A": "Trompa de Falópio (ampola).",
+    "B": "Ovário.",
+    "C": "Abdômen.",
+    "D": "Cérvix."
+  },
+  "correct": "A",
+  "explanation": "A localização mais comum da gravidez ectópica é a trompa de Falópio, especialmente na ampola."
+  },
+  {
+  "numero": 59,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Vacina anti-HPV está indicada para meninas entre:",
+  "options": {
+    "A": "9 e 14 anos.",
+    "B": "15 e 26 anos.",
+    "C": "20 e 30 anos.",
+    "D": "Todas as idades."
+  },
+  "correct": "A",
+  "explanation": "A faixa etária recomendada para vacinação é entre 9 e 14 anos para maior eficácia."
+  },
+  {
+  "numero": 60,
+  "area": "Ginecologia e Obstetrícia",
+  "question": "Uso de contraceptivos orais combinados é contraindicado em:",
+  "options": {
+    "A": "Mulheres com enxaqueca sem aura.",
+    "B": "Mulheres fumantes acima de 35 anos.",
+    "C": "Mulheres com diabetes sem complicações.",
+    "D": "Todas as anteriores."
+  },
+  "correct": "B",
+  "explanation": "Fumantes acima de 35 anos têm maior risco cardiovascular e, portanto, contraindicação para contraceptivos combinados."
+  },
+  {
+    "numero": 61,
+    "area": "Pediatria",
+    "question": "Paciente de 4 anos, previamente hígido, com quadro clínico compatível com meningite aguda. Líquor: pressão de abertura 210 mmH2O, celularidade 1100/μL com predomínio de neutrófilos, glicorraquia 15 mg/dL (glicemia 90 mg/dL), proteína 200 mg/dL. Trata-se de meningite:",
+    "options": {
+      "A": "Bacteriana aguda.",
+      "B": "Viral.",
+      "C": "Química.",
+      "D": "Fúngica."
+    },
+    "correct": "A",
+    "explanation": "Líquor com pleocitose neutrofílica, glicorraquia baixa e proteína elevada indica meningite bacteriana aguda."
+  },
+  {
+    "numero": 62,
+    "area": "Psiquiatria Pediátrica",
+    "question": "Em relação ao TDAH, analise: I. Metilfenidato é primeira linha; II. Benzodiazepínicos são indicados; III. Sintomatologia pode persistir na vida adulta. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "B",
+    "explanation": "Metilfenidato é primeira linha; benzodiazepínicos não são indicados; sintomas podem persistir na vida adulta."
+  },
+  {
+    "numero": 63,
+    "area": "Neurologia Pediátrica",
+    "question": "São evidências clínicas de hipertensão intracraniana: I. Papiledema; II. Depressão da consciência; III. Déficits neurológicos focais. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "D",
+    "explanation": "Todas são manifestações clínicas possíveis de hipertensão intracraniana."
+  },
+  {
+    "numero": 64,
+    "area": "Neurologia Pediátrica",
+    "question": "Paciente com hemianopsia bitemporal apresenta comprometimento no:",
+    "options": {
+      "A": "Lobo temporal.",
+      "B": "Quiasma óptico.",
+      "C": "Trato óptico.",
+      "D": "Lobo parietal."
+    },
+    "correct": "B",
+    "explanation": "Hemianopsia bitemporal ocorre por lesão no quiasma óptico, que interrompe fibras das faces nasais dos campos visuais."
+  },
+  {
+    "numero": 65,
+    "area": "Neurologia Pediátrica",
+    "question": "Neonato com mancha vinhosa intensa na hemiface esquerda, incluindo região periorbitária, com suspeita de síndrome de Sturge-Weber. Exame complementar mais indicado:",
+    "options": {
+      "A": "Biópsia da lesão.",
+      "B": "Eletroencefalograma de amplitude integrada.",
+      "C": "Tomografia de crânio.",
+      "D": "Angioressonância de crânio."
+    },
+    "correct": "D",
+    "explanation": "Angioressonância identifica malformações vasculares típicas da síndrome de Sturge-Weber."
+  },
+  {
+    "numero": 66,
+    "area": "Neonatologia",
+    "question": "Segundo a Sociedade Brasileira de Pediatria, recém-nascido pode ter alta após 48 horas se apresentar: I. Sinais vitais estáveis por 4h; II. Eliminações fisiológicas; III. Peso na alta ≥ 2000g; IV. Testes auditivo, olhinho e coraçãozinho realizados. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e III.",
+      "B": "Apenas II e IV.",
+      "C": "Apenas II, III e IV.",
+      "D": "I, II, III e IV."
+    },
+    "correct": "D",
+    "explanation": "Todos os critérios são recomendados para alta segura do recém-nascido."
+  },
+  {
+    "numero": 67,
+    "area": "Neonatologia",
+    "question": "Fator de risco para hiperbilirrubinemia neonatal mais acentuada:",
+    "options": {
+      "A": "Icterícia iniciada nas primeiras 30 horas de vida.",
+      "B": "Aleitamento misto com perda >6% do peso na alta.",
+      "C": "Idade gestacional menor que 38 semanas.",
+      "D": "História de filho anterior que precisou fototerapia."
+    },
+    "correct": "A",
+    "explanation": "Icterícia precoce (<24-48h) é sinal de risco aumentado para hiperbilirrubinemia significativa."
+  },
+  {
+    "numero": 68,
+    "area": "Neonatologia",
+    "question": "Recém-nascido 38 semanas e 2 dias, peso 2350g, comprimento 46cm, perímetro cefálico 32cm. Classificação segundo INTERGROWTH-21:",
+    "options": {
+      "A": "Pré-termo.",
+      "B": "Adequado para a idade gestacional.",
+      "C": "Pequeno para idade gestacional, simétrico.",
+      "D": "Pequeno para idade gestacional, assimétrico."
+    },
+    "correct": "C",
+    "explanation": "Peso e medidas abaixo do esperado indicam pequeno para idade gestacional simétrico."
+  },
+  {
+    "numero": 69,
+    "area": "Neurologia Pediátrica",
+    "question": "Sinais de irritação meningorradicular, EXCETO:",
+    "options": {
+      "A": "Rigidez de nuca.",
+      "B": "Kernig.",
+      "C": "Brudzinski.",
+      "D": "Lázaro."
+    },
+    "correct": "D",
+    "explanation": "Sinal de Lázaro não é sinal de irritação meníngea."
+  },
+  {
+    "numero": 70,
+    "area": "Pediatria",
+    "question": "Sobre acidentes na infância, analise: I. Acidentes são principal causa de morte após 12 meses no Brasil; II. Frequência varia com idade, ambiente e desenvolvimento; III. De nascimento a 9 meses, crianças até 10 kg podem ser transportadas de frente para o painel com cinto e semi-reclinadas; IV. Andadores são aprovados para proteção contra acidentes no 1º ano. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas II e III.",
+      "C": "Apenas III e IV.",
+      "D": "I, II, III e IV."
+    },
+    "correct": "A",
+    "explanation": "Andadores não são recomendados e transporte de frente para painel não é seguro para crianças pequenas."
+  },
+  {
+    "numero": 71,
+    "area": "Pediatria",
+    "question": "Lactente de 2 meses com vômitos, recusa alimentar e irritabilidade. Exame: palidez, febre, fontanela abaulada. Líquor: 340 células (82% polimorfonucleares), proteínas 280 mg/dL, glicose 26 mg/dL; glicemia 284 mg/dL. Agente etiológico provável:",
+    "options": {
+      "A": "Escherichia coli.",
+      "B": "Streptococcus pneumoniae.",
+      "C": "Citomegalovírus.",
+      "D": "Staphylococcus aureus."
+    },
+    "correct": "A",
+    "explanation": "Escherichia coli é agente comum de meningite bacteriana em lactentes menores de 3 meses."
+  },
+  {
+    "numero": 72,
+    "area": "Pediatria",
+    "question": "Sobre triagem, diagnóstico e gestão da sepse na criança, assinale V (verdadeiro) ou F (falso): 1) Coleta hemocultura antes do tratamento, se não atrasar antimicrobianos; 2) Hiperlactatemia é imprescindível para suspeita; 3) Monitorização de saturação e débito urinário é importante na 1ª hora; 4) Respostas endócrinas e metabólicas das citocinas são principais responsáveis pela gravidade. Ordem correta:",
+    "options": {
+      "A": "V – F – V – V.",
+      "B": "F – V – F – V.",
+      "C": "F – V – V – F.",
+      "D": "V – F – V – F."
+    },
+    "correct": "A",
+    "explanation": "Coleta de hemocultura recomendada se não atrasar antimicrobianos; hiperlactatemia nem sempre presente; monitorização importante; respostas das citocinas influenciam gravidade."
+  },
+  {
+    "numero": 73,
+    "area": "Pediatria",
+    "question": "Sobre parada cardiorrespiratória (PCR) pediátrica, assinale V (verdadeiro) ou F (falso): 1) Causas cardiológicas primárias são mais comuns; 2) Vias endovenosa e intraóssea preferenciais para medicamentos; 3) Epinefrina é droga padrão; 4) Controle da hipertermia e hipoxemia importantes pós-ressuscitação. Ordem correta:",
+    "options": {
+      "A": "F – V – V – V.",
+      "B": "V – F – V – F.",
+      "C": "F – F – V – V.",
+      "D": "V – V – F – V."
+    },
+    "correct": "A",
+    "explanation": "PCR pediátrica frequentemente secundária a causas respiratórias; vias EV e IO são preferidas; epinefrina padrão; controle térmico e oxigenação essenciais."
+  },
+  {
+    "numero": 74,
+    "area": "Pediatria",
+    "question": "Sobre febre em pediatria, analise: I. Febre em RN <30 dias sempre necessita de avaliação urgente; II. Febre em crianças 1 a 3 meses requer avaliação de risco; III. Em crianças >3 meses, sem sinal de gravidade, pode-se manejar ambulatorialmente; IV. Uso de antipiréticos deve ser focado em conforto, não só em temperatura. Quais estão corretas?",
+    "options": {
+      "A": "I e II apenas.",
+      "B": "II e III apenas.",
+      "C": "I, II e IV apenas.",
+      "D": "I, II, III e IV."
+    },
+    "correct": "D",
+    "explanation": "Todas as afirmativas estão alinhadas com protocolos atuais."
+  },
+  {
+    "numero": 75,
+    "area": "Pediatria",
+    "question": "Paciente com crise convulsiva prolongada (>5 min), refratária a benzodiazepínicos. Próxima conduta:",
+    "options": {
+      "A": "Iniciar fenitoína EV.",
+      "B": "Realizar TC de crânio urgente.",
+      "C": "Aguardar estabilização para analgésicos.",
+      "D": "Suspender benzodiazepínicos e iniciar levetiracetam."
+    },
+    "correct": "A",
+    "explanation": "Fenitoína é a segunda linha após benzodiazepínicos para status epilepticus."
+  },
+  {
+    "numero": 76,
+    "area": "Neurologia Pediátrica",
+    "question": "Paciente com hemiparesia e atraso motor progressivo desde lactência. Diagnóstico mais provável:",
+    "options": {
+      "A": "Paralisia cerebral espástica.",
+      "B": "Meningite viral.",
+      "C": "Síndrome de Guillain-Barré.",
+      "D": "Miastenia grave."
+    },
+    "correct": "A",
+    "explanation": "Paralisia cerebral apresenta quadro motor progressivo e sintomas desde lactência."
+  },
+  {
+    "numero": 77,
+    "area": "Pediatria",
+    "question": "Paciente com anemia microcítica, hipocrômica, sem resposta à ferroterapia, com hemoglobina 8 g/dL, suspeita de talassemia. Exame laboratorial mais indicado para diagnóstico definitivo:",
+    "options": {
+      "A": "Eletroforese de hemoglobina.",
+      "B": "Teste de Coombs direto.",
+      "C": "Dosagem de ferritina.",
+      "D": "Hemograma completo."
+    },
+    "correct": "A",
+    "explanation": "Eletroforese identifica variantes da hemoglobina para confirmar talassemia."
+  },
+  {
+    "numero": 78,
+    "area": "Pediatria",
+    "question": "Vacina contra rotavírus é administrada em:",
+    "options": {
+      "A": "Recém-nascidos em até 15 dias.",
+      "B": "Lactentes com idade entre 6 semanas e 8 meses.",
+      "C": "Crianças com 1 ano de idade.",
+      "D": "Gestantes no 3º trimestre."
+    },
+    "correct": "B",
+    "explanation": "Vacina oral contra rotavírus é indicada a partir de 6 semanas até 8 meses."
+  },
+  {
+    "numero": 79,
+    "area": "Pediatria",
+    "question": "Criança com tosse crônica, perda ponderal, sudorese noturna e contato domiciliar com tuberculose. Conduta inicial:",
+    "options": {
+      "A": "Solicitar baciloscopia de escarro.",
+      "B": "Iniciar tratamento empírico para tuberculose.",
+      "C": "Realizar teste tuberculínico e avaliação clínica.",
+      "D": "Descartar tuberculose com radiografia de tórax."
+    },
+    "correct": "C",
+    "explanation": "Avaliação clínica e teste tuberculínico são primeiros passos na suspeita."
+  }, 
+  {
+    "numero": 80,
+    "area": "Pediatria",
+    "question": "Paciente pediátrico com asma persistente leve, tratamento de primeira linha:",
+    "options": {
+      "A": "Corticosteroide inalatório em baixa dose.",
+      "B": "Beta-2 agonista de curta duração conforme necessidade.",
+      "C": "Antileucotrienos isolados.",
+      "D": "Corticosteroide sistêmico."
+    },
+    "correct": "A",
+    "explanation": "Corticosteroide inalatório é primeira linha para controle da asma persistente leve."
+  },
+  {
+    "numero": 81,
+    "area": "MPS",
+    "question": "Em relação aos princípios do SUS, analise as seguintes assertivas: I. Descentralização refere-se a níveis de complexidade tecnológica crescente. II. Participação social refere-se à participação da população no processo de formulação das políticas de saúde. III. Complementação do setor privado refere-se à contratação de serviços privados, quando o setor público não for suficiente. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "C",
+    "explanation": "A descentralização no SUS refere-se à transferência de responsabilidade administrativa, e não a complexidade tecnológica. As afirmativas II e III estão corretas: a participação social é um princípio do SUS e a complementação do setor privado é prevista quando o público não supre a demanda."
+  },
+  {
+    "numero": 82,
+    "area": "MPS",
+    "question": "Analise as seguintes assertivas em relação à Equipe de Saúde da Família, conforme a Política de Atenção Básica: I. É considerada como estratégia de expansão, qualificação e consolidação da Atenção Básica. II. O número de agentes comunitários de saúde por equipe deverá ser definido com base populacional, critérios demográficos, epidemiológicos e socioeconômicos. III. É composta no mínimo por médico, enfermeiro, auxiliar e/ou técnico de enfermagem, cirurgião-dentista, auxiliar ou técnico em saúde bucal e agente comunitário de saúde. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "A",
+    "explanation": "As afirmativas I e II estão corretas. A composição mínima da Equipe de Saúde da Família não exige obrigatoriamente a presença de cirurgião-dentista e equipe de saúde bucal, sendo essas equipes adicionais."
+  },
+  {
+    "numero": 83,
+    "area": "MPS",
+    "question": "São atribuições comuns a todos os membros das equipes de saúde que atuam na Atenção Básica:",
+    "options": {
+      "A": "Realizar estratificação de risco e elaborar plano de cuidados para as pessoas que têm condições crônicas no território, junto aos demais membros da equipe.",
+      "B": "Participar do processo de territorialização e mapeamento da área de atuação da equipe, identificando grupos, famílias e indivíduos expostos a riscos e vulnerabilidades.",
+      "C": "Encaminhar, quando necessário, usuários a outros pontos de atenção, respeitando fluxos locais, mantendo sob sua responsabilidade o acompanhamento do plano terapêutico prescrito.",
+      "D": "Realizar e/ou supervisionar acolhimento com escuta qualificada e classificação de risco, de acordo com protocolos estabelecidos."
+    },
+    "correct": "B",
+    "explanation": "A territorialização é uma atribuição comum a todos os membros da equipe, sendo essencial para o planejamento e a intervenção eficaz na Atenção Básica."
+  },
+  {
+    "numero": 84,
+    "area": "MPS",
+    "question": "Assinale a alternativa que apresenta casos que se enquadram em situação de notificação compulsória imediata no Brasil.",
+    "options": {
+      "A": "Tuberculose e leishmaniose visceral.",
+      "B": "Doença de Chagas crônica e esquistossomose.",
+      "C": "Febre amarela e botulismo.",
+      "D": "Hanseníase e hepatites virais."
+    },
+    "correct": "C",
+    "explanation": "Febre amarela e botulismo são doenças de notificação compulsória imediata, conforme a Lista Nacional de Notificação Compulsória."
+  },
+  {
+    "numero": 85,
+    "area": "MPS",
+    "question": "Analise as seguintes assertivas em relação à Portaria nº 373/2002 que aprova a Norma Operacional da Assistência à Saúde (NOAS-SUS 01/2002): I. Amplia as responsabilidades dos municípios na Atenção Básica. II. Estabelece o processo de regionalização como estratégia de hierarquização dos serviços de saúde e de busca de maior equidade. III. Cria mecanismos para o fortalecimento da capacidade de gestão do Sistema Único de Saúde. Quais estão corretas?",
+    "options": {
+      "A": "Apenas I e II.",
+      "B": "Apenas I e III.",
+      "C": "Apenas II e III.",
+      "D": "I, II e III."
+    },
+    "correct": "D",
+    "explanation": "A NOAS-SUS 01/2002 ampliou a responsabilidade dos municípios, incentivou a regionalização dos serviços e fortaleceu a capacidade de gestão do SUS."
+  },
+  {
+    "numero": 86,
+    "area": "MPS",
+    "question": "Homem de 56 anos, previamente hígido, deseja fazer consulta de revisão periódica na UBS do seu bairro. Entretanto, como trabalha formalmente de segunda à sexta-feira das 8h às 17h, não consegue ir, pois a UBS não tem horário estendido. Qual dos atributos da Atenção Primária à Saúde (APS) não está sendo ofertado nessa situação?",
+    "options": {
+      "A": "Longitudinalidade.",
+      "B": "Acessibilidade.",
+      "C": "Integralidade.",
+      "D": "Coordenação."
+    },
+    "correct": "B",
+    "explanation": "A falta de horários compatíveis com a população compromete a acessibilidade às ações e serviços da APS."
+  },
+  {
+  "numero": 87,
+  "area": "Saúde Coletiva",
+  "question": "Analise as seguintes assertivas em relação à APS:\nI. Tem a função de servir e coordenar todas as necessidades de saúde da pessoa, assumindo a responsabilidade pela continuidade e pelo acompanhamento individual da pessoa e por problemas de saúde da comunidade.\nII. A coordenação do cuidado pode ser verificada, por exemplo, quando a equipe da APS faz contato com a equipe de um hospital terciário para saber sobre as internações de pacientes da comunidade por Covid-19 e as previsões de alta para iniciar atenção domiciliar.\nIII. Taxas elevadas de internações hospitalares por condições sensíveis podem indicar baixo acesso aos serviços de APS por parte da população ou oferta de uma APS de baixa qualidade.\nQuais estão corretas?",
+  "options": {
+    "A": "Apenas I e II.",
+    "B": "Apenas I e III.",
+    "C": "Apenas II e III.",
+    "D": "I, II e III."
+  },
+  "correct": "D",
+  "explanation": "Todas as afirmativas estão corretas e refletem princípios fundamentais da Atenção Primária à Saúde como coordenação do cuidado, acompanhamento contínuo e a análise das internações evitáveis como indicador da qualidade da APS."
+},
+{
+  "numero": 88,
+  "area": "Saúde Coletiva",
+  "question": "Assinale a alternativa correta em relação ao diagnóstico e tratamento da sífilis na APS.",
+  "options": {
+    "A": "O VDRL (Venereal Disease Research Laboratory) é um exame treponêmico e serve para o diagnóstico e acompanhamento pós-terapêutico.",
+    "B": "O VDRL passa a ser positivo após a 2ª semana do aparecimento do cancro duro e costuma atingir seus valores mais elevados na fase secundária.",
+    "C": "A aplicação da penicilina benzatina não deve ser realizada na UBS, pelo risco da reação anafilática à penicilina.",
+    "D": "O tratamento da sífilis latente tardia, com mais de um ano de evolução (ou latente com duração ignorada), e da sífilis terciária é feito com benzilpenicilina benzatina 2,4 milhões de UI, intramuscular, em dose única."
+  },
+  "correct": "B",
+  "explanation": "A opção correta é a B. O VDRL é um teste não treponêmico, que geralmente se torna positivo após a 2ª semana do cancro duro, atingindo valores elevados na fase secundária. O tratamento da sífilis tardia exige 3 doses semanais de penicilina benzatina, não dose única."
+},
+{
+  "numero": 89,
+  "area": "Saúde Coletiva",
+  "question": "Analise as seguintes assertivas em relação ao sofrimento psíquico:\nI. Estudos avaliando a saúde mental da população LGBTQIA+, negros e mulheres demonstram que esses indivíduos têm risco elevado para desenvolver sofrimento psíquico e transtornos mentais.\nII. Sofrimento psíquico em questões relacionadas à raça, gênero, indígenas e refugiados deve ser avaliado em serviços especializados.\nIII. É fundamental manter-se alerta em situações de sofrimento mental, queixas somáticas inespecíficas e atrasos para consultas ou dificuldade de acesso diante do impacto dos papéis de gênero e da violência doméstica na saúde mental dos pacientes.\nQuais estão corretas?",
+  "options": {
+    "A": "Apenas I e II.",
+    "B": "Apenas I e III.",
+    "C": "Apenas II e III.",
+    "D": "I, II e III."
+  },
+  "correct": "B",
+  "explanation": "A alternativa correta é a B. A assertiva II está incorreta porque o sofrimento psíquico relacionado a fatores sociais e culturais pode e deve ser abordado na APS e não exclusivamente em serviços especializados."
+},
+{
+  "numero": 90,
+  "area": "Saúde Coletiva",
+  "question": "Analise as seguintes assertivas no que se refere às ações de controle da tuberculose a serem realizadas:\nI. Compete à instância municipal, entre outras ações, assegurar a realização dos exames diagnósticos, conforme preconizado nas normas, identificar e organizar a rede de laboratórios locais e suas referências municipais, regionais e estaduais.\nII. A organização da assistência farmacêutica no âmbito da APS e o uso racional de medicamentos devem ser objeto de integração, trabalhando-se além do acesso aos medicamentos, a atenção farmacêutica, o uso de novos medicamentos e as ações de farmacovigilância.\nIII. Deve haver registro periódico e sistematizado da dispensação/entrega dos medicamentos para cada paciente, uma vez que registros referentes à retirada de medicamentos da farmácia podem ser utilizados como método indireto de controle de adesão.\nQuais estão corretas?",
+  "options": {
+    "A": "Apenas I e II.",
+    "B": "Apenas I e III.",
+    "C": "Apenas II e III.",
+    "D": "I, II e III."
+  },
+  "correct": "D",
+  "explanation": "Todas as assertivas estão corretas e refletem diretrizes do Programa Nacional de Controle da Tuberculose, incluindo ações administrativas, farmacêuticas e de monitoramento de adesão."
+},
+{
+  "numero": 91,
+  "area": "Saúde Coletiva",
+  "question": "Sobre o Transtorno do Espectro Autista (TEA), pode-se afirmar que:",
+  "options": {
+    "A": "Evidências científicas apontam a presença de um biomarcador específico.",
+    "B": "O mercúrio presente nas vacinas é um importante fator de risco para o desenvolvimento do TEA.",
+    "C": "O diagnóstico é essencialmente clínico, feito a partir das observações da criança, entrevistas com os pais e aplicação de instrumentos específicos.",
+    "D": "A presença de estereotipias e afeto restrito causam pouco prejuízo no processo de socialização."
+  },
+  "correct": "C",
+  "explanation": "O diagnóstico do TEA é clínico, baseado em observações comportamentais e uso de escalas validadas. Não há biomarcadores específicos, e as vacinas não causam autismo."
+},
+{
+  "numero": 92,
+  "area": "Saúde Coletiva",
+  "question": "Para identificar indivíduos com taquicardia (FC > 100 bpm), um pesquisador está utilizando um monitor cardíaco de pulso que está com defeito, e sempre mostra valores menores que 100 bpm, medindo corretamente apenas os indivíduos com frequência cardíaca normal. Considerando essas informações, a sensibilidade desse monitor cardíaco é:",
+  "options": {
+    "A": "De 100%, e a especificidade é zero.",
+    "B": "De 50%, e a especificidade é 50%.",
+    "C": "De zero, e a especificidade é 100%.",
+    "D": "De zero, e a especificidade também é zero."
+  },
+  "correct": "C",
+  "explanation": "Como o equipamento nunca detecta taquicardia, a sensibilidade é 0%. Mas ele identifica corretamente todos os normais (frequência <100 bpm), o que confere especificidade de 100%."
+},
+{
+  "numero": 93,
+  "area": "Saúde Coletiva",
+  "question": "Considere um teste com 90% de sensibilidade, 5% de taxa de falsos positivos e uma prevalência de 1%. Se uma mãe de 40 anos tem um teste positivo para síndrome de Down, qual é a probabilidade de que o bebê realmente tenha a síndrome?",
+  "options": {
+    "A": "Entre 10% e 20%.",
+    "B": "Entre 45% e 55%.",
+    "C": "Entre 85% e 95%.",
+    "D": "Entre 95% e 100%."
+  },
+  "correct": "A",
+  "explanation": "Trata-se de um exemplo clássico de raciocínio bayesiano. Apesar da alta sensibilidade, a baixa prevalência e os falsos positivos fazem com que a probabilidade pós-teste seja de aproximadamente 10%, portanto alternativa A."
+},
+{
+  "numero": 94,
+  "area": "Saúde Coletiva",
+  "question": "Considerando os dados apresentados, podemos afirmar que nesse estudo o sedentarismo está significativamente associado ao risco de:",
+  "options": {
+    "A": "Obesidade e diabetes em homens e mulheres.",
+    "B": "Hipertensão somente em mulheres.",
+    "C": "Osteoporose em homens e mulheres.",
+    "D": "Depressão em homens e mulheres."
+  },
+  "correct": "D",
+  "explanation": "A associação com depressão em ambos os sexos apresenta intervalo de confiança que não inclui 1, indicando significância estatística."
+},
+{
+  "numero": 95,
+  "area": "Saúde Coletiva",
+  "question": "A medida que expressa quantas vezes mais (ou menos) é provável encontrar um resultado em pessoas doentes, em comparação com as não doentes, e que influencia a probabilidade pós-teste é chamada de:",
+  "options": {
+    "A": "Especificidade.",
+    "B": "Razão de verossimilhança.",
+    "C": "Sensibilidade.",
+    "D": "Valor preditivo."
+  },
+  "correct": "B",
+  "explanation": "A razão de verossimilhança (likelihood ratio) mede o quanto um teste altera a probabilidade pré-teste para a probabilidade pós-teste."
+},
+{
+  "numero": 96,
+  "area": "Saúde Coletiva",
+  "question": "Qual dos resultados abaixo apresenta a maior precisão?",
+  "options": {
+    "A": "Média: 3.050 g; desvio-padrão: 200 g.",
+    "B": "Média: 3.150 g; desvio-padrão: 350 g.",
+    "C": "Média: 3.200 g; desvio-padrão: 100 g.",
+    "D": "Média: 3.300 g; desvio-padrão: 250 g."
+  },
+  "correct": "C",
+  "explanation": "Menor desvio-padrão indica maior precisão, independentemente da média."
+},
+{
+  "numero": 97,
+  "area": "Saúde Coletiva",
+  "question": "Um pesquisador pretende estudar a prevalência de uma doença comum e uma doença rara na mesma população. Como deve ser a amostra?",
+  "options": {
+    "A": "Para estudar a doença comum, a amostra deve ser menor do que a utilizada para estudar a doença rara.",
+    "B": "Para estudar a doença comum, a amostra deve ser maior do que a utilizada para estudar a doença rara.",
+    "C": "Para estudar a doença comum, a amostra deve ser igual à utilizada para estudar a doença rara.",
+    "D": "Não é possível definir com as informações fornecidas."
+  },
+  "correct": "A",
+  "explanation": "Doenças raras exigem amostras maiores para garantir número suficiente de casos para análise estatística."
+},
+{
+  "numero": 98,
+  "area": "Saúde Coletiva",
+  "question": "Assinale a alternativa correta em relação a ataques de pânico.",
+  "options": {
+    "A": "São extremamente comuns na população em geral, podendo não necessitar de tratamento.",
+    "B": "Ocorrem exclusivamente em casos de transtorno do pânico.",
+    "C": "Uma das técnicas orientadas a utilizar é a hiperventilação.",
+    "D": "Em geral, são duradouros e deve ser feito o uso de benzodiazepínico de ação longa."
+  },
+  "correct": "A",
+  "explanation": "Ataques de pânico podem ocorrer em diferentes contextos, inclusive isoladamente. Muitas vezes não necessitam tratamento específico, apenas orientação e acolhimento."
+},
+{
+  "numero": 99,
+  "area": "Saúde Coletiva",
+  "question": "De acordo com as normas de publicidade médica do Código de Ética Médica nº 2.217/2018, é vedado ao médico:\nI. Permitir que sua participação na divulgação de assuntos médicos, em qualquer meio de comunicação de massa, deixe de ter caráter exclusivamente de esclarecimento e educação da sociedade.\nII. Divulgar informação sobre assunto médico de forma sensacionalista, promocional ou de conteúdo inverídico.\nIII. Divulgar, fora do meio científico, processo de tratamento ou descoberta cujo valor ainda não esteja expressamente reconhecido cientificamente por órgão competente.\nIV. Participar de anúncios de empresas comerciais, qualquer que seja sua natureza, valendo-se de sua profissão.\nQuais estão corretas?",
+  "options": {
+    "A": "Apenas I e II.",
+    "B": "Apenas II e III.",
+    "C": "Apenas III e IV.",
+    "D": "I, II, III e IV."
+  },
+  "correct": "D",
+  "explanation": "O Código de Ética Médica veda todas essas práticas para preservar a integridade da profissão e proteger a população."
+},
+{
+  "numero": 100,
+  "area": "Saúde Coletiva",
+  "question": "Analise as seguintes assertivas em relação à saúde mental e às doenças orgânicas:\nI. O hipotireoidismo causa sintomas comuns à depressão, como cansaço, alteração do sono, ganho de peso, desânimo e fraqueza.\nII. Pacientes com dor crônica apresentam frequentemente comorbidade psiquiátrica.\nIII. A doença de Parkinson pode apresentar comorbidade com depressão em até 50% dos pacientes acometidos.\nQuais estão corretas?",
+  "options": {
+    "A": "Apenas I e II.",
+    "B": "Apenas I e III.",
+    "C": "Apenas II e III.",
+    "D": "I, II e III."
+  },
+  "correct": "D",
+  "explanation": "Todas as assertivas são verdadeiras e evidenciam a forte interrelação entre doenças orgânicas e transtornos mentais."
+}
+
+    ];
+
+        // Função para selecionar 5 questões aleatórias de cada área e agrupar por área
+    function selectAndGroupQuestionsByArea() {
+      const questionsByArea = {};
+      const selectedQuestions = [];
+      
+      // Agrupar todas as questões por área
+      allQuestions.forEach(question => {
+        if (!questionsByArea[question.area]) {
+          questionsByArea[question.area] = [];
+        }
+        questionsByArea[question.area].push(question);
+      });
+      
+      // Para cada área, selecionar 5 questões aleatórias e adicionar ao array final
+      for (const area in questionsByArea) {
+        const areaQuestions = questionsByArea[area];
+        // Embaralhar as questões da área
+        const shuffled = areaQuestions.sort(() => 0.5 - Math.random());
+        // Pegar as primeiras 5 (ou menos se não houver 5)
+        const selected = shuffled.slice(0, 5);
+        // Adicionar ao array final
+        selectedQuestions.push(...selected);
+      }
+      
+      return selectedQuestions;
+    }
+
+    // Selecionar as questões para o simulado (agrupadas por área)
+    const questions = selectAndGroupQuestionsByArea();
+
+    function init() {
+      showQuestion();
+      document.getElementById('next').onclick = () => navigate(1);
+      document.getElementById('prev').onclick = () => navigate(-1);
+      document.getElementById('flag-icon').onclick = toggleFlagIcon;
+      document.getElementById('show-flagged').onclick = showFlaggedQuestions;
+    }
+
+    function showQuestion() {
+      const q = questions[idx];
+      document.getElementById('area-title').textContent = q.area;
+      document.getElementById('question-text').textContent = `${q.numero}. ${q.question}`;
+
+      const opts = document.getElementById('options');
+      opts.innerHTML = '';
+
+      for (const key in q.options) {
+        const li = document.createElement('li');
+        const label = document.createElement('label');
+        label.className = 'option-label';
+
+        if (q.answered) {
+          if (key === q.correct) label.classList.add('correct');
+          else if (key === q.answered) label.classList.add('wrong');
+        }
+
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'option';
+        input.disabled = !!q.answered;
+        input.checked = q.answered === key;
+        input.onclick = () => selectAnswer(key);
+
+        const span = document.createElement('span');
+        span.textContent = `${key}) ${q.options[key]}`;
+
+        label.appendChild(input);
+        label.appendChild(span);
+        li.appendChild(label);
+        opts.appendChild(li);
+      }
+
+      const feedback = document.getElementById('feedback');
+      if (q.answered) {
+        feedback.textContent = q.answered === q.correct
+          ? 'Resposta correta!'
+          : `Errado. A resposta correta é: ${q.correct}) ${q.options[q.correct]}`;
+        feedback.style.color = q.answered === q.correct ? 'lightgreen' : 'tomato';
+      } else {
+        feedback.textContent = '';
+      }
+
+      updateButtons();
+      updateFlagButton();
+    }
+
+    function selectAnswer(choice) {
+      const q = questions[idx];
+      if (!q.answered) {
+        q.answered = choice;
+        if (choice === q.correct) score++;
+      }
+      showQuestion();
+    }
+
+    function navigate(step) {
+      idx += step;
+      if (idx < 0) idx = 0;
+      if (idx >= questions.length) {
+        showResults();
+        return;
+      }
+      showQuestion();
+    }
+
+    function toggleFlagIcon() {
+      flagged.has(idx) ? flagged.delete(idx) : flagged.add(idx);
+      updateFlagButton();
+    }
+
+    function updateButtons() {
+      document.getElementById('prev').disabled = idx === 0;
+      document.getElementById('next').textContent = idx === questions.length - 1 ? 'Finalizar' : 'Próxima';
+    }
+
+    function updateFlagButton() {
+      const icon = document.getElementById('flag-icon');
+      icon.classList.remove('flagged');
+      icon.textContent = flagged.has(idx) ? '✔️' : '⚑';
+      if (flagged.has(idx)) icon.classList.add('flagged');
+    }
+
+    function toggleFlagSidebar() {
+      document.getElementById('flag-sidebar').classList.toggle('show');
+    }
+
+    function showFlaggedQuestions() {
+      if (flagged.size === 0) {
+        alert('Nenhuma questão foi marcada ainda.');
+        return;
+      }
+
+      const sidebar = document.getElementById('flag-sidebar');
+      const list = document.getElementById('flagged-list');
+      list.innerHTML = '';
+
+      flagged.forEach(i => {
+        const q = questions[i];
+        const div = document.createElement('div');
+        div.className = 'flagged-question';
+        div.innerHTML = `<strong>${q.numero}. ${q.area}</strong><br>${q.question.substring(0, 100)}...`;
+        div.onclick = () => {
+          idx = i;
+          showQuestion();
+          toggleFlagSidebar();
+        };
+        list.appendChild(div);
+      });
+
+      toggleFlagSidebar();
+    }
+
+    function showResults() {
+      document.querySelector('main').style.display = 'none';
+      document.querySelector('nav').style.display = 'none';
+
+      const results = document.getElementById('results');
+      results.style.display = 'block';
+
+      const pct = Math.round((score / questions.length) * 100);
+      document.getElementById('score').textContent = `Você acertou ${score} de ${questions.length} questões (${pct}%).`;
+
+      showFilteredQuestions('all');
+    }
+
+    function showFilteredQuestions(filter) {
+      const ex = document.getElementById('explanations');
+      ex.innerHTML = '';
+
+      questions.forEach((q, i) => {
+        const acertou = q.answered === q.correct;
+        const foiMarcada = flagged.has(i);
+
+        if (
+          (filter === 'correct' && !acertou) ||
+          (filter === 'incorrect' && acertou)
+        ) return;
+
+        const div = document.createElement('div');
+
+        const marcadaTexto = foiMarcada
+          ? `<br><span style="color: yellow;">⚑ Questão marcada</span>`
+          : '';
+
+        div.innerHTML =
+          `<details>
+            <summary style="color:${acertou ? 'lightgreen' : 'tomato'};">
+              ${q.numero}. ${acertou ? 'Correta' : 'Errada'}
+              <br><span style="color: white;">Sua resposta: ${q.answered ? `${q.answered}) ${q.options[q.answered]}` : '-'}</span>
+              <br>Correta: ${q.correct}) ${q.options[q.correct]}
+              ${marcadaTexto}
+            </summary>
+            <p style="margin-left:15px;">Explicação: ${q.explanation}</p>
+          </details>`;
+        ex.appendChild(div);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
