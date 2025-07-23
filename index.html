@@ -32,7 +32,13 @@
       text-align: center;
     }
 
-    button {
+    .dropdown {
+      position: relative;
+      display: block;
+      margin: 12px 0;
+    }
+
+    .dropdown button {
       background: linear-gradient(135deg, #3a67af, #2a4c8c);
       border: none;
       color: #f0f2f7;
@@ -40,13 +46,28 @@
       border-radius: 15px;
       cursor: pointer;
       font-size: 18px;
-      font-weight: 400;
-      margin: 12px 0;
+      font-weight: 500;
       width: 100%;
       box-shadow: 0 6px 15px rgba(58, 103, 175, 0.6);
       transition: all 0.3s ease;
       letter-spacing: 0.03em;
       user-select: none;
+    }
+
+    .dropdown-content {
+      display: none;
+      flex-direction: column;
+      margin-top: 10px;
+    }
+
+    .dropdown-content button {
+      margin: 6px 0;
+      font-size: 17px;
+      font-weight: 400;
+    }
+
+    .dropdown.active .dropdown-content {
+      display: flex;
     }
 
     button:hover,
@@ -68,35 +89,53 @@
       opacity: 0.85;
       margin-top: 4px;
     }
-
-    /* Terceiro botão com estilo diferente */
-    button.spotify-btn {
-      background: linear-gradient(135deg, #1db954, #1aa34a);
-      box-shadow: 0 6px 15px rgba(29, 185, 84, 0.6);
-      font-weight: 600;
-    }
-
-    button.spotify-btn:hover,
-    button.spotify-btn:focus {
-      background: linear-gradient(135deg, #27d75b, #1db954);
-      box-shadow: 0 10px 25px rgba(29, 185, 84, 0.85);
-      transform: translateY(-2px);
-    }
   </style>
 </head>
 <body>
   <div class="container">
-    <button onclick="window.location.href='index-completo.html'">
-      🧠 Prova Completa
-      <span>(100 questões)</span>
-    </button>
-    <button onclick="window.location.href='index-teste25.html'">
-      💊 Prova Mini
-      <span>(25 questões)</span>
-    </button>
-    <button class="spotify-btn" onclick="window.open('https://open.spotify.com/track/4DnrAI8WyUY6gkOwl8GlPN?si=PxQdYkJGThus2uD7GYuGpg&context=spotify%3Asearch', '_blank')">
-      💃 Caso não queira fazer as provas, ouça essa música
-    </button>
+
+    <div class="dropdown" onclick="toggleDropdown(this)">
+      <button>👩‍⚕️ AMRIGS 2024</button>
+      <div class="dropdown-content">
+        <button onclick="window.location.href='100-questoes-2024.html'">
+          🧠 Prova Completa - 2024 <span>(100 questões)</span>
+        </button>
+        <button onclick="window.location.href='25-questoes-2024.html'">
+          💊 Prova Mini - 2024 <span>(25 questões)</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="dropdown" onclick="toggleDropdown(this)">
+      <button>👩‍⚕️ AMRIGS 2023</button>
+      <div class="dropdown-content">
+        <button onclick="window.location.href='100-questoes-2023.html'">
+          🧠 Prova Completa - 2023 <span>(100 questões)</span>
+        </button>
+        <button onclick="window.location.href='25-questoes-2023.html'">
+          💊 Prova Mini - 2023 <span>(25 questões)</span>
+        </button>
+      </div>
+    </div>
+
   </div>
+
+  <script>
+    function toggleDropdown(element) {
+      const allDropdowns = document.querySelectorAll('.dropdown');
+      allDropdowns.forEach(drop => {
+        if (drop !== element) drop.classList.remove('active');
+      });
+      element.classList.toggle('active');
+    }
+
+    // Fecha o dropdown ao clicar fora
+    document.addEventListener('click', function (e) {
+      const isDropdown = e.target.closest('.dropdown');
+      if (!isDropdown) {
+        document.querySelectorAll('.dropdown').forEach(drop => drop.classList.remove('active'));
+      }
+    });
+  </script>
 </body>
 </html>
