@@ -93,6 +93,8 @@
 </head>
 <body>
   <div class="container">
+    <div id="signin-container" style="margin-bottom:20px;"></div>
+    <button id="history-link" style="display:none;margin-bottom:20px;" onclick="window.location.href='history.html'">📚 Histórico de Tentativas</button>
 
     <div class="dropdown" onclick="toggleDropdown(this)">
       <button>👩‍⚕️ AMRIGS 2024</button>
@@ -137,5 +139,7 @@
       }
     });
   </script>
+  <script src="auth.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer onload="initGoogle()"></script>
 </body>
 </html>
