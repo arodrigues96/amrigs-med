@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Histórico de Tentativas</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #0e1a2b;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #244063;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #183153;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="signin-container" style="margin-bottom:20px;"></div>
+    <h1>Histórico de Tentativas</h1>
+    <table id="history-table">
+      <thead>
+        <tr><th>Data</th><th>Área</th><th>Questão</th><th>Resposta</th><th>Correta?</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <script src="auth.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer onload="initGoogle()"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const tbody = document.querySelector('#history-table tbody');
+      const history = getHistory();
+      history.forEach(h => {
+        const tr = document.createElement('tr');
+        const date = new Date(h.timestamp).toLocaleString();
+        tr.innerHTML = `<td>${date}</td><td>${h.area}</td><td>${h.qNum}</td><td>${h.selected}</td><td>${h.correct ? '✔️' : '❌'}</td>`;
+        tbody.appendChild(tr);
+      });
+    });
+  </script>
+</body>
+</html>
